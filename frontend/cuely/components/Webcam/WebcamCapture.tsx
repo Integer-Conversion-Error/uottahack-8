@@ -42,8 +42,6 @@ export default function WebcamCapture({
 
   const chunksRef = useRef<Blob[]>([]);
 
-  const chunksRef = useRef<Blob[]>([]);
-
   // Capture single image
   const captureImage = useCallback(() => {
     if (webcamRef.current) {
