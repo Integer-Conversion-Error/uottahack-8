@@ -21,11 +21,11 @@ const AVAILABLE_LESSONS = [
 
 export default function LessonsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="p-10">
       <div className="max-w-6xl mx-auto">
         <header className="mb-10 text-center">
-            <h1 className="text-4xl font-bold mb-4 text-slate-800">Explore Lessons</h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h1 className="text-4xl font-bold mb-4 text-white">Explore Lessons</h1>
+            <p className="text-blue-100/70 max-w-2xl mx-auto text-xl">
                 Browse our library of social scenarios designed to help you master nuanced interactions.
             </p>
         </header>
@@ -34,23 +34,23 @@ export default function LessonsPage() {
           {AVAILABLE_LESSONS.map((lesson) => (
             <div
               key={lesson.id}
-              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col"
+              className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border border-white/10 flex flex-col group hover:border-white/20"
             >
               <div className="mb-4">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide mb-2
-                    ${lesson.difficulty === 'beginner' ? 'bg-green-100 text-green-700' : 
-                      lesson.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-700' : 
-                      'bg-red-100 text-red-700'}`}>
-                    {lesson.difficulty.toUpperCase()}
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-3 uppercase
+                    ${lesson.difficulty === 'beginner' ? 'bg-green-500/20 text-green-300' : 
+                      lesson.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-300' : 
+                      'bg-red-500/20 text-red-300'}`}>
+                    {lesson.difficulty}
                   </span>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{lesson.title}</h3>
-                  <p className="text-gray-600 text-sm line-clamp-3">{lesson.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-100 transition-colors">{lesson.title}</h3>
+                  <p className="text-blue-100/60 text-sm line-clamp-3 leading-relaxed">{lesson.description}</p>
               </div>
               
-              <div className="mt-auto pt-4 border-t border-gray-50">
+              <div className="mt-auto pt-4 border-t border-white/5">
                   <Link 
                     href={`/lessons/${lesson.id}`} 
-                    className="block w-full text-center py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium"
+                    className="block w-full text-center py-2.5 bg-[#5E7381] text-white rounded-xl hover:bg-[#4a5c6a] transition-all font-bold shadow-lg shadow-black/20"
                   >
                     Start Lesson
                   </Link>

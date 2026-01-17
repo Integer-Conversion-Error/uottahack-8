@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: 'Interactive demo for learning to detect sarcasm',
 };
 
+import LayoutWrapper from '@/components/LayoutWrapper';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,16 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${josefin_sans.variable} ${kaisei_opti.variable}`}>
       <body className={kaisei_opti.className}>
-        <header className="w-full flex justify-center pt-2 pb-2 ">
-          <Image
-            src="/Cuely-logo-bg-removed.png"
-            alt="Cuely Logo"
-            width={70}
-            height={70}
-            priority
-          />
-        </header>
-        {children}
+        <LayoutWrapper>
+          {children}
+        </LayoutWrapper>
       </body>
     </html>
   );
