@@ -12,7 +12,7 @@ export class GeminiService {
 
 
 
-  static async analyzeVideo(filePath: string, tone: string): Promise<any> {
+  static async analyzeVideo(filePath: string, tone: string, promptContext: string = "No specific context provided"): Promise<any> {
     try {
       const uploadResult = await ai.files.upload({
         file: filePath,
@@ -47,9 +47,13 @@ export class GeminiService {
       console.log(`Video processing complete: ${processedFile.uri}`);
 
       const prompt = `
-          Analyze this video for social cues. The user is attempting to convey a tone of: "${tone}".
+          Analyze this video for social cues. 
           
-          Grade the user on these 4 items:
+          Context:
+          - Target Tone: "${tone}"
+          - Situation/Prompt user is responding to: "${promptContext}"
+          
+          Grade the user on these 4 items based on how well they respond to the situation:
           1. Facial Expression
           2. Eye Contact
           3. Body Language

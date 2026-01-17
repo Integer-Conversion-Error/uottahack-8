@@ -30,14 +30,14 @@ export const analyzeVideo = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "No video uploaded" });
         }
 
-        const { tone } = req.body;
+        const { tone, context } = req.body;
         if (!tone) {
             // cleanup
             fs.unlinkSync(req.file.path);
             return res.status(400).json({ message: "Tone/Context is required" });
         }
 
-        const analysis = await GeminiService.analyzeVideo(req.file.path, tone);
+        const analysis = await GeminiService.analyzeVideo(req.file.path, tone, context);
 
         // Cleanup video file from local disk after successful upload/analysis
         fs.unlinkSync(req.file.path);

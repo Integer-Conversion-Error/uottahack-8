@@ -97,9 +97,10 @@ export const completeSession = async (req: Request, res: Response) => {
         // Determine tone from scenario
         const scenario = session.scenarioId as any;
         const targetTone = scenario.category || "General Social Cue";
+        const promptContext = `Scenario: ${scenario.title}. Situation: ${scenario.context?.situation || scenario.description}. Audio Prompt: "${scenario.audio?.transcript || 'N/A'}"`;
 
         // Run AI analysis
-        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone);
+        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext);
 
         // Save analysis
         session.analysis = {
