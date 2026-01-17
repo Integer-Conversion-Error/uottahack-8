@@ -1,146 +1,145 @@
 // app/lessons/[lessonId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import { gsap } from 'gsap';
 import DefinitionPage from '@/components/DefinitionPage';
 import ResultsPage, { SessionAnalysis } from '@/components/ResultsPage';
+import Image from 'next/image';
+
+import PracticePage from '@/components/PracticePage';
+
+import EmpathyLesson from '@/data/Empathy_Introduction.json';
+import SarcasmLesson from '@/data/Sarcasm.json';
 
 interface LessonPageProps {
-  params: {
+  params: Promise<{
     lessonId: string;
-  };
+  }>;
 }
 
-type PageType = 'loading' | 'definition' | 'practice' | 'results';
+const LESSON_MAP: Record<string, any> = {
+  [EmpathyLesson.lessonId]: EmpathyLesson,
+  [SarcasmLesson.lessonId]: SarcasmLesson,
+  'empathy-beg-001': EmpathyLesson, // Fallback ID matching file
+  'lesson-sarcasm-001': SarcasmLesson // Fallback ID matching file
+};
+
+const getLesson = (id: string) => LESSON_MAP[id] || null;
 
 export default function LessonPage({ params }: LessonPageProps) {
-  const [currentPage, setCurrentPage] = useState<PageType>('results');
+  // Unwrap params using React.use()
+  const { lessonId } = use(params);
+
+  // Use index to track progress: -1 (loading), 0...N (pages), N+1 (results)
+  const [pageIndex, setPageIndex] = useState<number>(-1);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
 
+  const lessonData = getLesson(lessonId);
+
   useEffect(() => {
-    if (currentPage === 'loading') {
-      const tl = gsap.timeline({
-        onComplete: () => {
-          // Auto-advance to definition page after animation
-          setTimeout(() => setCurrentPage('definition'), 1000);
-        }
-      });
-
-      tl.to(titleRef.current, {
-        opacity: 1,
-        duration: 1,
-        ease: 'power2.inOut'
-      })
-      .to(descriptionRef.current, {
-        opacity: 1,
-        duration: 1,
-        ease: 'power2.inOut'
-      }, '-=0.3');
-
-      return () => {
-        tl.kill();
-      };
+    // Only run animation if we have data and are in loading state
+    if (pageIndex === -1 && lessonData) {
+       // ... animation logic ...
+       if (titleRef.current && descriptionRef.current) {
+          const tl = gsap.timeline({
+            onComplete: () => {
+              // Auto-advance to definition page (index 0) after animation
+              setTimeout(() => setPageIndex(0), 1000);
+            }
+          });
+          tl.to(titleRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' })
+            .to(descriptionRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' }, '-=0.3');
+          return () => { tl.kill(); };
+       } else {
+           setTimeout(() => setPageIndex(0), 1000);
+       }
     }
-  }, [currentPage]);
+  }, [pageIndex, lessonData]);
 
-  const lessonData = {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "lessonId": "empathy-101-beginner",
-  "lessonNumber": 1,
-  "lessonName": "Empathy: Shared Emotion",
-  "pages": [
-    {
-      "pageType": "definition",
-      "pageOrder": 0,
-      "term": "Empathy",
-      "definition": "The ability to understand and share the feelings of another. In this beginner lesson, we focus on 'reciprocal empathy,' where the emotion is overtly mirrored and shared between people. It is not just listening; it is feeling the emotion alongside the other person.",
-      "visualCues": [
-        "Head tilted to the side",
-        "Soft, watery, or wide eyes depending on the emotion",
-        "Leaning forward significantly",
-        "Open hand gestures (palms up)",
-        "Mirroring facial expressions (sadness or joy)"
-      ],
-      "toneCues": [
-        "Softened volume for sadness / Heightened volume for joy",
-        "Elongated vowels to show care ('Oh nooo', 'Wooow')",
-        "Warm, breathy quality to the voice",
-        "Matching the tempo of the other person exactly"
-      ]
-    },
-    {
-      "pageType": "practice",
-      "pageOrder": 1,
-      "scenario": {
-        "context": "A close friend tells you their puppy has gone missing. You are sharing in their distress completely.",
-        "description": "The goal is to mirror the high level of distress and sadness. The empathy here is loud and obvious."
-      },
-      "audioSample": {
-        "url": "",
-        "duration": 5.5,
-        "tonalPrompt": "Voice is trembling, slightly higher pitch due to distress, very slow tempo, emphasized emotional words."
-      },
-      "transcript": "Oh no! That is absolutely heartbreaking! I am so worried too. We are going to find him, I promise.",
-      "appropriateResponse": {
-        "description": "A response that matches the intensity of the sadness and offers immediate shared support.",
-        "keyElements": [
-          "Match the sad facial expression",
-          "Use a gentle, concerned tone",
-          "Validate the feeling ('heartbreaking')",
-          "Use 'We' language to show shared burden"
-        ]
+  // Start session when entering a practice page
+  useEffect(() => {
+      if (lessonData && pageIndex >= 0 && pageIndex < lessonData.pages.length) {
+          const currentPage = lessonData.pages[pageIndex];
+          if (currentPage.pageType === 'practice' && !sessionId) {
+              startSession(currentPage);
+          }
       }
-    },
-    {
-      "pageType": "practice",
-      "pageOrder": 2,
-      "scenario": {
-        "context": "Your sibling just got engaged. You are sharing in their overwhelming joy.",
-        "description": "Empathy applies to joy as well. You are not just observing their happiness; you are amplifying it."
-      },
-      "audioSample": {
-        "url": "",
-        "duration": 4.2,
-        "tonalPrompt": "High energy, loud volume, wide pitch variation, laughter in the voice, fast tempo."
-      },
-      "transcript": "Oh my gosh!! I am literally crying happy tears right now! I am so, so incredibly happy for you both!",
-      "appropriateResponse": {
-        "description": "An enthusiastic, high-energy response that validates the excitement.",
-        "keyElements": [
-          "Wide smile and open eyes",
-          "Higher pitch and faster pace",
-          "Exaggerated positive affirmations",
-          "Physical excitement (clapping or hands to face)"
-        ]
+  }, [pageIndex, lessonData, sessionId]);
+
+
+  const startSession = async (pageData: any) => {
+      try {
+          const res = await fetch('http://localhost:4000/api/sessions/start', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  userId: '65a000000000000000000000', // Mock User ID
+                  lessonId: lessonId,
+                  difficulty: 'beginner', // Could come from lessonData
+                  title: pageData.scenario?.context || 'Practice Session'
+              })
+          });
+          const data = await res.json();
+          if (data.success) {
+              setSessionId(data.data.sessionId);
+              console.log('Session started:', data.data.sessionId);
+          }
+      } catch (err) {
+          console.error('Failed to start session', err);
       }
-    },
-    {
-      "pageType": "practice",
-      "pageOrder": 3,
-      "scenario": {
-        "context": "A partner admits they are feeling overwhelmed and scared about the future. You are validating their vulnerability with your own.",
-        "description": "This scenario focuses on deep, quiet connection. The tone is hushed and intimate."
-      },
-      "audioSample": {
-        "url": "",
-        "duration": 6.0,
-        "tonalPrompt": "Very quiet, breathy, slow, lower pitch, extremely gentle and soothing."
-      },
-      "transcript": "I can feel how heavy that is for you. It scares me too, honestly. But I am right here in this with you, holding your hand.",
-      "appropriateResponse": {
-        "description": "A quiet, reassuring response that acknowledges the shared fear while offering stability.",
-        "keyElements": [
-          "Maintain intense, soft eye contact",
-          "Slow down speech significantly",
-          "Acknowledge the specific emotion (fear/heaviness)",
-          "Reaffirm physical or emotional presence"
-        ]
+  };
+
+  const handlePracticeSubmit = async (blob: Blob) => {
+      if (!sessionId) {
+          console.error("No active session ID");
+          return;
       }
-    }
-  ]
-};
+      setIsSubmitting(true);
+      
+      const currentPage = lessonData.pages[pageIndex];
+      const formData = new FormData();
+      formData.append('video', blob, 'practice.webm');
+      formData.append('transcript', currentPage.transcript || '');
+      // Pass context for analysis
+      formData.append('targetTone', lessonData.lessonName || 'Social Cue');
+      formData.append('promptContext', currentPage.scenario?.context || 'Social interaction practice');
+
+      try {
+          const res = await fetch(`http://localhost:4000/api/sessions/${sessionId}/complete`, {
+              method: 'PUT',
+              body: formData
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+              console.log('Analysis complete:', data.data.analysis);
+              setAnalysisResult(data.data.analysis);
+              // Clear session ID so next practice page starts a new one
+              setSessionId(null); 
+              // Show feedback instead of auto-advancing
+              setShowFeedback(true);
+          } else {
+              console.error('Analysis failed:', data.message);
+              alert("Analysis failed: " + data.message);
+          }
+      } catch (err) {
+          console.error('Upload error:', err);
+          alert("Upload failed.");
+      } finally {
+          setIsSubmitting(false);
+      }
+  };
+
+  if (!lessonData) {
+     return <div className="min-h-screen flex items-center justify-center">Lesson not found: {lessonId}</div>;
+  }
 
 const sessionData = {
   "_id": {
@@ -212,78 +211,109 @@ const sessionData = {
     }
 
   const handleNext = () => {
-    if (currentPage === 'definition') {
-      setCurrentPage('practice');
-    } else if (currentPage === 'practice') {
-      setCurrentPage('results');
+    if (pageIndex < lessonData.pages.length - 1) {
+      setPageIndex(pageIndex + 1);
+    } else {
+      setPageIndex(lessonData.pages.length); // Results phase
     }
   };
 
   const handleBack = () => {
-    if (currentPage === 'definition') {
-      setCurrentPage('loading');
-    } else if (currentPage === 'practice') {
-      setCurrentPage('definition');
-    } else if (currentPage === 'results') {
-      setCurrentPage('practice');
+    if (pageIndex > 0) {
+      setPageIndex(pageIndex - 1);
+    } else {
+       setPageIndex(-1);
     }
   };
 
-  const getStepNumber = () => {
-    switch (currentPage) {
-      case 'definition': return 1;
-      case 'practice': return 2;
-      case 'results': return 3;
-      default: return 1;
-    }
+  const handleFeedbackNext = () => {
+      setShowFeedback(false);
+      setAnalysisResult(null);
+      handleNext();
   };
 
-  // Render different pages based on state
-  if (currentPage === 'loading') {
-    return (
+  // Loading Screen
+  if (pageIndex === -1) {
+      // ... existing loading screen ...
+       return (
        <div className="min-h-screen flex items-center justify-center bg-[#E1D3BE]">
-       
         <div className="text-center">
-          <h1 
-            ref={titleRef}
-            className="text-6xl font-bold text-[#5E7381] mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]"
-          >
+          <h1 ref={titleRef} className="text-6xl font-bold text-[#5E7381] mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]">
             Lesson {lessonData.lessonNumber}
           </h1>
-          <p 
-            ref={descriptionRef}
-            className="text-3xl text-black opacity-0"
-          >
+          <p ref={descriptionRef} className="text-3xl text-black opacity-0">
             {lessonData.lessonName}
           </p>
         </div>
       </div>
-     
     );
   }
 
-  if (currentPage === 'definition') {
+  // Intercept for Feedback/Results View
+  if (showFeedback && analysisResult) {
+      return (
+          <ResultsPage 
+            analysis={analysisResult} 
+            onNext={handleFeedbackNext}
+            isLastStep={pageIndex === lessonData.pages.length - 1}
+            onRetry={() => setShowFeedback(false)} // Simple retry just hides feedback
+          />
+      );
+  }
+
+  // Final Completion Screen (End of lesson) - Only reached after last feedback
+  if (pageIndex === lessonData.pages.length) {
+    return (
+        <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center flex-col gap-6 text-center p-8">
+            <h1 className="text-5xl font-bold text-[#5E7381]">Lesson Complete!</h1>
+            <p className="text-xl text-gray-700">You have completed all scenarios.</p>
+            <div className="flex gap-4 mt-8">
+                <a href="/lessons" className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm">
+                    Back to Lessons
+                </a>
+                <a href="/dashboard" className="px-8 py-3 bg-[#5E7381] text-white rounded-xl font-bold hover:bg-[#4a5c6a] transition-colors shadow-lg">
+                    Go to Dashboard
+                </a>
+            </div>
+        </div>
+    );
+  }
+
+  // Content Pages
+  const currentPageData = lessonData.pages[pageIndex];
+  if (!currentPageData) return <div>Error: Page data missing</div>;
+
+  if (currentPageData.pageType === 'definition') {
     return (
       <DefinitionPage
-        term={lessonData.pages[0].term  || ""}
-        definition={lessonData.pages[0].definition  || ""}
-        visualCues={lessonData.pages[0].visualCues || []}
-        toneCues={lessonData.pages[0].toneCues  || []}
+        term={currentPageData.term}
+        definition={currentPageData.definition}
+        visualCues={currentPageData.visualCues}
+        toneCues={currentPageData.toneCues}
         onNext={handleNext}
         onBack={handleBack}
-        currentStep={getStepNumber()}
-        totalSteps={4}
+        currentStep={pageIndex + 1}
+        totalSteps={lessonData.pages.length + 1}
       />
     );
   }
 
-  if (currentPage === 'practice') {
-    return <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center">
-      <h1 className="text-4xl">Practice Page (Coming Soon)</h1>
-    </div>;
+  if (currentPageData.pageType === 'practice') {
+    return (
+      <PracticePage
+        scenario={currentPageData.scenario}
+        audioSample={currentPageData.audioSample}
+        transcript={currentPageData.transcript}
+        onNext={handlePracticeSubmit} // Pass submit handler instead of generic next
+        onBack={handleBack}
+        currentStep={pageIndex + 1}
+        totalSteps={lessonData.pages.length + 1}
+        isSubmitting={isSubmitting} // Pass submitting state
+      />
+    );
   }
 
-  if (currentPage === 'results') {
+  if (currentPageData.pageType === 'results') {
     return (
       <ResultsPage
         analysis={sessionData.analysis as SessionAnalysis}

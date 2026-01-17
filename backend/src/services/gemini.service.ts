@@ -12,39 +12,39 @@ export class GeminiService {
 
 
 
-  static async analyzeVideo(filePath: string, tone: string, promptContext: string, presageData?: any): Promise<any> {
+  static async generateToneTags(text: string, tone: string, context: string = ""): Promise<string> {
     try {
-      const uploadResult = await ai.files.upload({
-        file: filePath,
-        config: {
-          mimeType: "video/mp4",
-          displayName: "User Uploaded Video"
-        }
+      const prompt = `
+        Enhance the following text to clearly convey a "${tone}" tone.
+        Context: ${context}
+        Original Text: "${text}"
+
+        Instructions:
+        1. Add a descriptive tag at the beginning, e.g., [Sarcastic], [Warmly], [Angry].
+        2. You may slightly adjust punctuation or add non-verbal cues (like *sigh*) if it significantly helps the TTS engine (ElevenLabs) understand the delivery, but keep the core message the same.
+        3. Return ONLY the final text string.
+      `;
+
+      const result = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
       });
 
-      if (!uploadResult.name) {
-        throw new Error("Upload failed: No file name returned");
-      }
-      const file = uploadResult;
-      console.log(`Uploaded video: ${file.name} (${file.uri})`);
+      const responseText = result.text;
+      return responseText ? responseText.trim() : text;
+    } catch (error) {
+      console.error("Gemini Tone Tag Error:", error);
+      return text; // Fallback to original text
+    }
+  }
 
-      let processedFile = await ai.files.get({ name: file.name! });
+  static async analyzeVideo(filePath: string, tone: string, promptContext: string, presageData?: any): Promise<any> {
+    try {
+      // Read video file as Base64
+      const videoBuffer = fs.readFileSync(filePath);
+      const videoBase64 = videoBuffer.toString('base64');
 
-      while (processedFile.state === "PROCESSING") {
-        console.log("Processing video...");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        processedFile = await ai.files.get({ name: file.name! });
-      }
-
-      if (processedFile.state === "FAILED") {
-        throw new Error("Video processing failed.");
-      }
-
-      if (!processedFile.uri || !processedFile.mimeType) {
-        throw new Error("Video processing completed but returned no URI or MIME type");
-      }
-
-      console.log(`Video processing complete: ${processedFile.uri}`);
+      console.log(`Read video file: ${filePath}, size: ${videoBuffer.length} bytes`);
 
       let prompt = `
           Analyze this video for social cues. 
@@ -82,15 +82,23 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3-pro-preview", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
             contents: [
               {
-                fileData: {
-                  mimeType: processedFile.mimeType!,
-                  fileUri: processedFile.uri!
-                }
-              },
-              { text: prompt }
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: "video/mp4",
+                      data: videoBase64
+                    },
+                    // @ts-ignore
+                    videoMetadata: {
+                      fps: 5
+                    }
+                  },
+                  { text: prompt }
+                ]
+              }
             ],
             config: {
               responseMimeType: "application/json",
@@ -135,9 +143,43 @@ export class GeminiService {
             }
           });
 
+
+
           // result.text should be valid JSON now
           const responseText = result.text || "{}";
-          return JSON.parse(responseText);
+          const parsedResponse = JSON.parse(responseText);
+
+          // Add token usage metadata if available
+          if (result.usageMetadata) {
+            const promptTokens = result.usageMetadata.promptTokenCount || 0;
+            const candidatesTokens = result.usageMetadata.candidatesTokenCount || 0;
+            const totalTokens = result.usageMetadata.totalTokenCount || 0;
+
+            let inputPricePerMillion = 0;
+            let outputPricePerMillion = 0;
+
+            // Pricing Tiers
+            if (promptTokens <= 200000) {
+              inputPricePerMillion = 2.00;
+              outputPricePerMillion = 12.00;
+            } else {
+              inputPricePerMillion = 4.00;
+              outputPricePerMillion = 18.00;
+            }
+
+            const inputCost = (promptTokens / 1000000) * inputPricePerMillion;
+            const outputCost = (candidatesTokens / 1000000) * outputPricePerMillion;
+            const totalCost = inputCost + outputCost;
+
+            parsedResponse.token_usage = {
+              totalTokens: totalTokens,
+              promptTokens: promptTokens,
+              candidatesTokens: candidatesTokens,
+              estimatedCostUSD: parseFloat(totalCost.toFixed(6))
+            };
+          }
+
+          return parsedResponse;
         } catch (jsonError) {
           console.warn(`Analysis failed, retrying... (${retries} left)`, jsonError);
           retries--;

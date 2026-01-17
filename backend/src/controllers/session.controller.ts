@@ -9,51 +9,45 @@ import fs from 'fs';
 // Start a new training session
 export const startSession = async (req: Request, res: Response) => {
     try {
-        const { userId, scenarioId } = req.body;
+        const { userId, scenarioId, lessonId, difficulty, title, totalSteps } = req.body;
 
-        if (!scenarioId) {
-            return res.status(400).json({
-                success: false,
-                message: 'scenarioId is required'
-            });
-        }
-
-        // Get scenario details
-        const scenario = await Scenario.findById(scenarioId);
-        if (!scenario) {
-            return res.status(404).json({
-                success: false,
-                message: 'Scenario not found'
-            });
-        }
-
-        // Create new session
-        const session = new Session({
+        let sessionData: any = {
             userId,
-            scenarioId,
-            difficulty: scenario.difficulty,
+            startedAt: new Date(),
             sessionType: 'practice',
-            response: {
-                webcamSnapshots: []
+            response: { webcamSnapshots: [] }
+        };
+
+        if (scenarioId) {
+            // Traditional flow with DB-backed scenario
+            const scenario = await Scenario.findById(scenarioId);
+            if (!scenario) {
+                return res.status(404).json({ success: false, message: 'Scenario not found' });
             }
-        });
+            sessionData.scenarioId = scenarioId;
+            sessionData.difficulty = scenario.difficulty;
+            // Increment stats
+            scenario.stats.timesAttempted += 1;
+            await scenario.save();
+        } else if (lessonId) {
+            // New flow for JSON lessons
+            sessionData.lessonId = lessonId;
+            sessionData.difficulty = difficulty || 'beginner';
+            // We can store title/context in a metadata field if we added one, 
+            // but for now we rely on the client sending context during completion
+        } else {
+            return res.status(400).json({ success: false, message: 'Either scenarioId or lessonId is required' });
+        }
 
+        const session = new Session(sessionData);
         await session.save();
-
-        // Increment scenario stats
-        scenario.stats.timesAttempted += 1;
-        await scenario.save();
 
         res.status(201).json({
             success: true,
             data: {
                 sessionId: session._id,
-                scenario: {
-                    title: scenario.title,
-                    audioUrl: scenario.audio.audioUrl,
-                    transcript: scenario.audio.transcript,
-                    duration: scenario.audio.durationSeconds
-                }
+                // Return dummy scenario object if needed for consistency, or just null
+                scenario: scenarioId ? undefined : { title: title || 'Custom Lesson' }
             }
         });
 
@@ -97,10 +91,23 @@ export const completeSession = async (req: Request, res: Response) => {
         if (presageData) session.response.presageData = presageData;
         session.response.audioUrl = req.file.path;
 
-        // Determine tone from scenario
-        const scenario = session.scenarioId as any;
-        const targetTone = scenario.category || "General Social Cue";
-        const promptContext = `Scenario: ${scenario.title}. Situation: ${scenario.context?.situation || scenario.description}. Audio Prompt: "${scenario.audio?.transcript || 'N/A'}"`;
+        // Determine tone and context
+        let targetTone = req.body.targetTone;
+        let promptContext = req.body.promptContext;
+
+        if (!targetTone || !promptContext) {
+            // Fallback to scenario if available
+            if (session.scenarioId) {
+                const scenario = session.scenarioId as any;
+                targetTone = targetTone || scenario.category || "General Social Cue";
+                promptContext = promptContext || `Scenario: ${scenario.title}. Situation: ${scenario.context?.situation || scenario.description}. Audio Prompt: "${scenario.audio?.transcript || 'N/A'}"`;
+            } else {
+                // If no scenario and no manual override, we can't analyze effectively
+                console.warn("Missing analysis context (tone/prompt) for session", sessionId);
+                targetTone = targetTone || "General";
+                promptContext = promptContext || "User is practicing a social interaction.";
+            }
+        }
 
         // Run AI analysis
         const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);

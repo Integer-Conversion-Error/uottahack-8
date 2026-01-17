@@ -42,16 +42,6 @@ export default function WebcamCapture({
 
   const chunksRef = useRef<Blob[]>([]);
 
-  // Capture single image
-  const captureImage = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc && onCapture) {
-        onCapture(imageSrc);
-      }
-    }
-  }, [onCapture]);
-
   // Start video recording
   const startRecording = useCallback(() => {
     if (webcamRef.current && webcamRef.current.stream) {
@@ -115,7 +105,7 @@ export default function WebcamCapture({
       )}
 
       {/* Webcam */}
-      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+      <div className="relative w-full flex-1 min-h-0 bg-black rounded-lg overflow-hidden">
         <Webcam
           ref={webcamRef}
           audio={false}
@@ -129,41 +119,35 @@ export default function WebcamCapture({
 
         {/* Recording Indicator */}
         {isRecording && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full">
+          <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full z-10">
             <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
             <span className="text-sm font-medium">Recording</span>
           </div>
         )}
+
+        {/* Controls Overlay */}
+        {showControls && hasPermission && (
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
+            {!isRecording ? (
+              <button
+                onClick={startRecording}
+                className="px-6 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition shadow-lg flex items-center gap-2 font-semibold"
+              >
+                <div className="w-4 h-4 bg-white rounded-full" />
+                Start Recording
+              </button>
+            ) : (
+              <button
+                onClick={stopRecording}
+                className="px-6 py-3 bg-gray-600 text-white rounded-full hover:bg-gray-700 transition shadow-lg flex items-center gap-2 font-semibold"
+              >
+                <div className="w-4 h-4 bg-red-500 rounded-sm" />
+                Stop Recording
+              </button>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Controls */}
-      {showControls && hasPermission && (
-        <div className="mt-4 flex gap-3">
-          <button
-            onClick={captureImage}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            disabled={isRecording}
-          >
-            📸 Capture Photo
-          </button>
-
-          {!isRecording ? (
-            <button
-              onClick={startRecording}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-            >
-              ⏺️ Start Recording
-            </button>
-          ) : (
-            <button
-              onClick={stopRecording}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-            >
-              ⏹️ Stop Recording
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
