@@ -48,7 +48,7 @@ def summarize_schema(schema):
                 
     return "\n".join(summary)
 
-def generate_course_content(num_modules: int = 1):
+def generate_course_content(num_modules: int = 1, tone: str = "Sarcasm"):
     """
     Generates structured JSON using Gemini 3.0 Pro based on the schema.
     """
@@ -69,16 +69,16 @@ def generate_course_content(num_modules: int = 1):
     for i in range(num_modules):
         # Determine difficulty/nuance based on module sequence
         if i == 0:
-            difficulty = "Beginner: 'Right on the nose'. The sarcasm should be extremely obvious and exaggerated."
+            difficulty = f"Beginner: 'Right on the nose'. The {tone.lower()} should be extremely obvious and exaggerated."
         elif i == 1:
-            difficulty = "Intermediate: The sarcasm should be clear but less exaggerated than the beginner level."
+            difficulty = f"Intermediate: The {tone.lower()} should be clear but less exaggerated than the beginner level."
         else:
-            difficulty = "Advanced: 'Rather nuanced'. The sarcasm should be subtle, relying heavily on tone or context, and easy to miss."
+            difficulty = f"Advanced: 'Rather nuanced'. The {tone.lower()} should be subtle, relying heavily on context, and easy to miss."
 
-        print(f"Generating lesson {i+1}/{num_modules} [Difficulty: {difficulty.split(':')[0]}]...")
+        print(f"Generating lesson {i+1}/{num_modules} [Difficulty: {difficulty.split(':')[0]}] for tone: {tone}...")
         
         prompt = f"""
-        Create a valid JSON object for a lesson about "Sarcasm".
+        Create a valid JSON object for a lesson about "{tone}".
         Lesson Number: {i+1}
         Difficulty Level: {difficulty}
         
@@ -88,7 +88,10 @@ def generate_course_content(num_modules: int = 1):
         The output MUST be a valid JSON object that strictly adheres to the following JSON Schema:
         {json.dumps(SCHEMA, indent=2)}
         
-        Ensure the 'pages' array contains at least one of each page type defined in definitions (loading, definition, practice, results) in a logical order.
+
+        - Ensure the 'pages' array contains at least one of each page type defined in definitions (definition, practice) in a logical order.
+        - For 'audioSample.url', ALWAYS use an empty string "".
+        - Focus on candor and reciprocity in interactions. The tone should be SHARED between speakers. Avoid one-sided scenarios where one person is {tone.lower()}/emotional and the other is stoic. Both participants should be engaging in the tonal context (e.g., both being {tone.lower()}).
         """
 
         try:
@@ -115,11 +118,12 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="Generate structured JSON with Gemini")
     parser.add_argument("--modules", type=int, default=1, help="Number of modules to generate")
+    parser.add_argument("--tone", type=str, default="Sarcasm", help="Tone of the lesson (e.g., 'Sarcasm', 'Empathy', 'Anger')")
     
     args = parser.parse_args()
     
-    print(f"Generating content with {args.modules} module(s)...")
-    json_output = generate_course_content(num_modules=args.modules)
+    print(f"Generating content with {args.modules} module(s) for tone: {args.tone}...")
+    json_output = generate_course_content(num_modules=args.modules, tone=args.tone)
     
     if json_output:
         print("\n--- Generated JSON ---")

@@ -30,45 +30,16 @@
             "items": {
                 "oneOf": [
                     {
-                        "$ref": "#/definitions/loadingPage"
-                    },
-                    {
                         "$ref": "#/definitions/definitionPage"
                     },
                     {
                         "$ref": "#/definitions/practicePage"
-                    },
-                    {
-                        "$ref": "#/definitions/resultsPage"
                     }
                 ]
             }
         }
     },
     "definitions": {
-        "loadingPage": {
-            "type": "object",
-            "required": [
-                "pageType",
-                "pageOrder"
-            ],
-            "properties": {
-                "pageType": {
-                    "type": "string",
-                    "enum": [
-                        "loading"
-                    ]
-                },
-                "pageOrder": {
-                    "type": "integer",
-                    "description": "Order in the lesson flow (0-based index)"
-                },
-                "displayText": {
-                    "type": "string",
-                    "description": "Text to display during loading (auto-generated from lesson data if not provided)"
-                }
-            }
-        },
         "definitionPage": {
             "type": "object",
             "required": [
@@ -163,12 +134,15 @@
                     "properties": {
                         "url": {
                             "type": "string",
-                            "format": "uri",
                             "description": "URL to the audio sample file"
                         },
                         "duration": {
                             "type": "number",
                             "description": "Duration of audio in seconds"
+                        },
+                        "tonalPrompt": {
+                            "type": "string",
+                            "description": "Description of the tone for TTS generation"
                         }
                     }
                 },
@@ -195,116 +169,6 @@
                             }
                         }
                     }
-                },
-                "userRecording": {
-                    "type": "object",
-                    "description": "User's recorded practice attempt",
-                    "properties": {
-                        "videoUrl": {
-                            "type": "string",
-                            "format": "uri",
-                            "description": "URL to user's recorded video"
-                        },
-                        "submittedAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "Timestamp when video was submitted"
-                        }
-                    }
-                }
-            }
-        },
-        "resultsPage": {
-            "type": "object",
-            "required": [
-                "pageType",
-                "pageOrder",
-                "evaluation"
-            ],
-            "properties": {
-                "pageType": {
-                    "type": "string",
-                    "enum": [
-                        "results"
-                    ]
-                },
-                "pageOrder": {
-                    "type": "integer",
-                    "description": "Order in the lesson flow (0-based index)"
-                },
-                "evaluation": {
-                    "type": "object",
-                    "required": [
-                        "facialExpression",
-                        "bodyLanguage",
-                        "tone",
-                        "eyeContact"
-                    ],
-                    "properties": {
-                        "facialExpression": {
-                            "$ref": "#/definitions/evaluationMetric"
-                        },
-                        "bodyLanguage": {
-                            "$ref": "#/definitions/evaluationMetric"
-                        },
-                        "tone": {
-                            "$ref": "#/definitions/evaluationMetric"
-                        },
-                        "eyeContact": {
-                            "$ref": "#/definitions/evaluationMetric"
-                        },
-                        "overallFeedback": {
-                            "type": "string",
-                            "description": "General feedback summary"
-                        }
-                    }
-                },
-                "canRetry": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether user can go back to practice again"
-                }
-            }
-        },
-        "evaluationMetric": {
-            "type": "object",
-            "required": [
-                "score",
-                "feedback"
-            ],
-            "properties": {
-                "score": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 100,
-                    "description": "Score out of 100 for this metric"
-                },
-                "rating": {
-                    "type": "string",
-                    "enum": [
-                        "excellent",
-                        "good",
-                        "needs-improvement"
-                    ],
-                    "description": "Categorical rating"
-                },
-                "feedback": {
-                    "type": "string",
-                    "description": "Specific feedback for this metric"
-                },
-                "strengths": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "What the user did well"
-                },
-                "improvements": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "Areas for improvement"
                 }
             }
         }

@@ -12,7 +12,7 @@ export class GeminiService {
 
 
 
-  static async analyzeVideo(filePath: string, tone: string, promptContext: string): Promise<any> {
+  static async analyzeVideo(filePath: string, tone: string, promptContext: string, presageData?: any): Promise<any> {
     try {
       const uploadResult = await ai.files.upload({
         file: filePath,
@@ -46,12 +46,18 @@ export class GeminiService {
 
       console.log(`Video processing complete: ${processedFile.uri}`);
 
-      const prompt = `
+      let prompt = `
           Analyze this video for social cues. 
           
           Context:
           - Target Tone: "${tone}"
-          - Situation/Prompt user is responding to: "${promptContext}"
+          - Situation/Prompt user is responding to: "${promptContext}"`;
+
+      if (presageData) {
+        prompt += `\n          - Supplementary Biometric Data (Presage): ${JSON.stringify(presageData)}`;
+      }
+
+      prompt += `
           
           Grade the user on these 4 items based on how well they respond to the situation:
           1. Facial Expression
