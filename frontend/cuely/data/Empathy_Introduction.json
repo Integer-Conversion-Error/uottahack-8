@@ -29,8 +29,8 @@
         "description": "Your friend is visibly upset and crying about the lost dessert."
       },
       "audioSample": {
-        "url": "",
-        "duration": 5.5,
+        "url": "/audio/empathy_beg_001_1_1768690629362.mp3",
+        "duration": 7.08,
         "tonalPrompt": "Exaggerated sadness, loud crying, slow speech, trembling voice."
       },
       "transcript": "Oh no! Look at it! My double-scoop ice cream is all over the dirty sidewalk! I am so sad!",
@@ -52,8 +52,8 @@
         "description": "The speaker is jumping up and down with extreme joy."
       },
       "audioSample": {
-        "url": "",
-        "duration": 4.2,
+        "url": "/audio/empathy_beg_001_2_1768690632119.mp3",
+        "duration": 6.35,
         "tonalPrompt": "Extremely high pitch, fast pace, loud screaming, laughter."
       },
       "transcript": "Yes! Yes! I got the robot dog! I can't believe it! This is the best day of my life!",
@@ -75,8 +75,8 @@
         "description": "The classmate is wincing and holding their knee in pain."
       },
       "audioSample": {
-        "url": "",
-        "duration": 3.8,
+        "url": "/audio/empathy_beg_001_3_1768690635031.mp3",
+        "duration": 6.53,
         "tonalPrompt": "Sharp intakes of breath, groaning, strained voice indicating pain."
       },
       "transcript": "Owww! Ooh, that really hurts! I hit the corner right on my kneecap! Ouuuch!",

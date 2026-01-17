@@ -29,8 +29,8 @@
         "description": "Your friend gestures broadly at the gray sky and the soaking wet ground."
       },
       "audioSample": {
-        "url": "",
-        "duration": 5.2,
+        "url": "/audio/lesson_sarcasm_001_1_1768690637274.mp3",
+        "duration": 5.15,
         "tonalPrompt": "Voice should be dripping with exaggerated enthusiasm that clearly contradicts the miserable reality.",
         "toneTag": "[Exaggeratedly Sarcastic]"
       },
@@ -52,8 +52,8 @@
         "description": "Your roommate stares at the mess, which clearly looks terrible and smells bad."
       },
       "audioSample": {
-        "url": "",
-        "duration": 6.5,
+        "url": "/audio/lesson_sarcasm_001_2_1768690639602.mp3",
+        "duration": 6.19,
         "tonalPrompt": "Tone should be mock-impressed, as if critiquing a fine art piece.",
         "toneTag": "[Playfully Sarcastic]"
       },
@@ -75,8 +75,8 @@
         "description": "Your moving partner leans against the wall, sweating profusely and panting."
       },
       "audioSample": {
-        "url": "",
-        "duration": 4.8,
+        "url": "/audio/lesson_sarcasm_001_3_1768690642187.mp3",
+        "duration": 4.05,
         "tonalPrompt": "Voice is tired, flat, and slow to emphasize the physical exhaustion.",
         "toneTag": "[Dry Sarcasm]"
       },
