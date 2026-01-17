@@ -1,0 +1,306 @@
+[
+  {
+    "lessonId": "LSN-001-SARCASM-BEG",
+    "lessonNumber": 1,
+    "lessonName": "Sarcasm: The Art of Saying the Opposite",
+    "pages": [
+      {
+        "pageType": "loading",
+        "pageOrder": 0,
+        "displayText": "Loading Lesson 1: Prepare for some extremely serious content... or not."
+      },
+      {
+        "pageType": "definition",
+        "pageOrder": 1,
+        "term": "Sarcasm",
+        "definition": "A form of communication where the speaker says the opposite of what they actually mean, often to be funny, mock a situation, or express annoyance. At a beginner level, the mismatch between words and reality is very obvious.",
+        "visualCues": [
+          "Rolling of the eyes",
+          "Exaggerated smiling or grimacing",
+          "Slow, deliberate nodding",
+          "One raised eyebrow"
+        ],
+        "toneCues": [
+          "Elongated vowels (e.g., 'Riiiight')",
+          "Lower pitch than normal speaking voice",
+          "Heavy emphasis on specific words",
+          "Monotone or bored delivery despite 'exciting' words"
+        ]
+      },
+      {
+        "pageType": "practice",
+        "pageOrder": 2,
+        "scenario": {
+          "context": "You and a friend are walking to the bus stop. Suddenly, a car drives by through a puddle and splashes muddy water all over your friend's clean clothes.",
+          "description": "Your friend looks down at their ruined shirt, then looks at you with a deadpan face."
+        },
+        "audioSample": {
+          "url": "https://api.lessons.com/audio/sarcasm_mud_splash.mp3",
+          "duration": 4.5
+        },
+        "transcript": "Oh, fantastic. This is exactly what I needed to start my day. Just perfect.",
+        "appropriateResponse": {
+          "description": "Recognize that your friend is upset, not happy. Do not congratulate them. Offer sympathy or a shared laugh at the bad luck.",
+          "keyElements": [
+            "Acknowledge the misfortune",
+            "Do not take the word 'fantastic' literally",
+            "Match the vented frustration"
+          ]
+        }
+      },
+      {
+        "pageType": "results",
+        "pageOrder": 3,
+        "evaluation": {
+          "facialExpression": {
+            "score": 0,
+            "rating": "needs-improvement",
+            "feedback": "Evaluation pending user submission.",
+            "strengths": [],
+            "improvements": [
+              "Wait for user input"
+            ]
+          },
+          "bodyLanguage": {
+            "score": 0,
+            "rating": "needs-improvement",
+            "feedback": "Evaluation pending user submission.",
+            "strengths": [],
+            "improvements": [
+              "Wait for user input"
+            ]
+          },
+          "tone": {
+            "score": 0,
+            "rating": "needs-improvement",
+            "feedback": "Evaluation pending user submission.",
+            "strengths": [],
+            "improvements": [
+              "Wait for user input"
+            ]
+          },
+          "eyeContact": {
+            "score": 0,
+            "rating": "needs-improvement",
+            "feedback": "Evaluation pending user submission.",
+            "strengths": [],
+            "improvements": [
+              "Wait for user input"
+            ]
+          },
+          "overallFeedback": "Complete the practice scenario to see your sarcasm detection results."
+        },
+        "canRetry": true
+      }
+    ]
+  },
+  {
+    "lessonId": "sarcasm-int-002",
+    "lessonNumber": 2,
+    "lessonName": "Sarcasm II: Intermediate Cues",
+    "pages": [
+      {
+        "pageType": "loading",
+        "pageOrder": 0,
+        "displayText": "Loading lesson: Understanding Contextual Sarcasm..."
+      },
+      {
+        "pageType": "definition",
+        "pageOrder": 1,
+        "term": "Intermediate Sarcasm",
+        "definition": "At an intermediate level, sarcasm relies less on exaggerated vocal shifts and more on context and subtle facial expressions. It involves saying the opposite of what is meant, often to express mild annoyance or humor, where the disconnect between the positive words and negative situation creates the meaning.",
+        "visualCues": [
+          "A tight, asymmetrical smile (smirk)",
+          "Slightly prolonged eye contact or a fixed stare",
+          "A 'deadpan' or unusually flat facial expression despite 'exciting' words",
+          "Subtle eyebrow raising"
+        ],
+        "toneCues": [
+          "Slightly lower pitch than normal speech",
+          "Elongated vowels on adjectives (e.g., 'Grreeeeat')",
+          "Monotone delivery of positive words",
+          "Emphasis placed on the wrong syllable"
+        ]
+      },
+      {
+        "pageType": "practice",
+        "pageOrder": 2,
+        "scenario": {
+          "context": "Professional Office Setting",
+          "description": "You arrive 15 minutes late to a team meeting due to traffic. Your manager looks at the clock as you sit down."
+        },
+        "audioSample": {
+          "url": "https://api.lessons.com/audio/sarcasm-int-02.mp3",
+          "duration": 5.2
+        },
+        "transcript": "Oh, look who decided to join us. I'm so glad you could fit us into your busy schedule.",
+        "appropriateResponse": {
+          "description": "Recognize the manager is annoyed, not actually glad. Do not get defensive or thank them. Offer a sincere, brief apology.",
+          "keyElements": [
+            "Maintain respectful eye contact",
+            "Nod slightly to acknowledge the fault",
+            "Use a sincere, apologetic tone",
+            "Avoid smiling"
+          ]
+        }
+      },
+      {
+        "pageType": "results",
+        "pageOrder": 3,
+        "canRetry": true,
+        "evaluation": {
+          "facialExpression": {
+            "score": 85,
+            "rating": "good",
+            "feedback": "You successfully avoided smiling, which fits the serious context.",
+            "strengths": [
+              "Neutral mouth position",
+              "Attentive head tilt"
+            ],
+            "improvements": [
+              "Try to relax your eyebrows to look less defensive"
+            ]
+          },
+          "bodyLanguage": {
+            "score": 92,
+            "rating": "excellent",
+            "feedback": "Your posture conveyed respect and openness.",
+            "strengths": [
+              "Shoulders facing the speaker",
+              "Still hands"
+            ],
+            "improvements": []
+          },
+          "tone": {
+            "score": 70,
+            "rating": "needs-improvement",
+            "feedback": "Your voice sounded slightly sarcastic back, which escalated the tension.",
+            "strengths": [
+              "Clear volume"
+            ],
+            "improvements": [
+              "Lower the pitch at the end of sentences",
+              "Ensure the apology sounds genuine"
+            ]
+          },
+          "eyeContact": {
+            "score": 88,
+            "rating": "good",
+            "feedback": "You maintained good contact without staring.",
+            "strengths": [
+              "Consistent gaze"
+            ],
+            "improvements": [
+              "Don't look away immediately after speaking"
+            ]
+          },
+          "overallFeedback": "Good job identifying the sarcasm. You understood that the manager was annoyed. Focus on keeping your vocal tone sincere to de-escalate the situation effectively."
+        }
+      }
+    ]
+  },
+  {
+    "lessonId": "LSN-003-ADV-SAR",
+    "lessonNumber": 3,
+    "lessonName": "Advanced Sarcasm",
+    "pages": [
+      {
+        "pageType": "loading",
+        "pageOrder": 0,
+        "displayText": "Loading advanced scenario: The 'Polite' Contradiction..."
+      },
+      {
+        "pageType": "definition",
+        "pageOrder": 1,
+        "term": "Deadpan / Nuanced Sarcasm",
+        "definition": "A subtle form of sarcasm where the speaker maintains a serious or neutral demeanor, often using polite or complimentary words that directly contradict the negative context or reality of the situation.",
+        "visualCues": [
+          "Prolonged, unblinking eye contact",
+          "Lack of genuine smile markers (no crinkling around eyes)",
+          "Slight tightening of the lips",
+          "Still, rigid head position"
+        ],
+        "toneCues": [
+          "Flat, monotone delivery",
+          "Slightly lower volume than normal speech",
+          "Over-enunciation of 'positive' words",
+          "Incongruent calmness"
+        ]
+      },
+      {
+        "pageType": "practice",
+        "pageOrder": 2,
+        "scenario": {
+          "context": "Corporate Boardroom. A project lead, David, has just presented a budget that is 200% over the allocated limit.",
+          "description": "Your director, Elena, looks at the final slide of the presentation and delivers the following line. You must respond to her feedback, acknowledging the error without reacting to the sting."
+        },
+        "audioSample": {
+          "url": "https://assets.training.com/audio/sarcasm_adv_lesson3.mp3",
+          "duration": 6.5
+        },
+        "transcript": "I am truly impressed by the sheer ambition of these numbers. It takes a lot of courage to completely ignore the financial constraints of reality.",
+        "appropriateResponse": {
+          "description": "A professional acknowledgment of the oversight. Do not become defensive or mirror her sarcasm.",
+          "keyElements": [
+            "Maintain neutral facial expression (no frowning or rolling eyes)",
+            "Steady, calm voice tone",
+            "Direct eye contact showing attentiveness",
+            "Verbal acknowledgment of the budget issue"
+          ]
+        }
+      },
+      {
+        "pageType": "results",
+        "pageOrder": 3,
+        "evaluation": {
+          "facialExpression": {
+            "score": 88,
+            "rating": "good",
+            "feedback": "You kept a mostly neutral face, effectively hiding frustration.",
+            "strengths": [
+              "Relaxed brow",
+              "No reactive smiling"
+            ],
+            "improvements": [
+              "Avoid biting your lip when listening"
+            ]
+          },
+          "bodyLanguage": {
+            "score": 92,
+            "rating": "excellent",
+            "feedback": "Your posture remained professional and open throughout the critique.",
+            "strengths": [
+              "Shoulders relaxed",
+              "Hands still"
+            ],
+            "improvements": []
+          },
+          "tone": {
+            "score": 74,
+            "rating": "needs-improvement",
+            "feedback": "Your response pitch raised slightly at the end, sounding defensive.",
+            "strengths": [
+              "Clear articulation"
+            ],
+            "improvements": [
+              "Maintain a lower, decisive pitch",
+              "Avoid 'upspeak' at the end of sentences"
+            ]
+          },
+          "eyeContact": {
+            "score": 95,
+            "rating": "excellent",
+            "feedback": "You maintained excellent focus on the speaker without staring aggressively.",
+            "strengths": [
+              "Appropriate blink rate",
+              "Direct focus"
+            ],
+            "improvements": []
+          },
+          "overallFeedback": "A strong attempt at a difficult scenario. You correctly identified that Elena was not actually complimenting the 'ambition' or 'courage'. Work on flattening your vocal tone to match the professional gravity of the situation."
+        },
+        "canRetry": true
+      }
+    ]
+  }
+]
