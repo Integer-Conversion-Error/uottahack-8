@@ -1,93 +1,164 @@
+// components/ResultsPage.tsx
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 
-interface AnalysisItem {
-  score: 'thumbs-up' | 'thumbs-sideways' | 'thumbs-down';
+export type FeedbackScore = 'thumbs-up' | 'thumbs-down' | 'thumbs-sideways';
+
+export interface FeedbackMetric {
+  score: FeedbackScore;
   feedback: string;
 }
 
-interface AnalysisResult {
-  facial_expression: AnalysisItem;
-  eye_contact: AnalysisItem;
-  body_language: AnalysisItem;
-  tone: AnalysisItem;
-  token_usage?: any;
+export interface SessionAnalysis {
+  rawScore: number;
+  facial_expression: FeedbackMetric;
+  eye_contact: FeedbackMetric;
+  body_language: FeedbackMetric;
+  tone: FeedbackMetric;
 }
 
 interface ResultsPageProps {
-  analysis: AnalysisResult;
+  analysis: SessionAnalysis;
+  onTryAgain: () => void;
   onNext: () => void;
-  onRetry?: () => void; // Optional retry logic
-  isLastStep: boolean;
+  currentStep: number;
+  totalSteps: number;
 }
 
-const ScoreIcon = ({ score }: { score: string }) => {
-  if (score === 'thumbs-up') return <span className="text-2xl">👍</span>;
-  if (score === 'thumbs-sideways') return <span className="text-2xl">😐</span>;
-  return <span className="text-2xl">👎</span>;
-};
+export default function ResultsPage({
+  analysis,
+  onTryAgain,
+  onNext,
+  currentStep,
+  totalSteps,
+}: ResultsPageProps) {
+  const steps = [
+    { number: 1, label: 'Definition' },
+    { number: 2, label: 'Practice' },
+    { number: 3, label: 'Results' },
+  ];
 
-const ScoreCard = ({ title, item }: { title: string, item: AnalysisItem }) => {
-  const getBgColor = (score: string) => {
-    if (score === 'thumbs-up') return 'bg-green-50 border-green-200';
-    if (score === 'thumbs-sideways') return 'bg-yellow-50 border-yellow-200';
-    return 'bg-red-50 border-red-200';
+  const getScoreIcon = (score: FeedbackScore): string => {
+    switch (score) {
+      case 'thumbs-up':
+        return '👍';
+      case 'thumbs-sideways':
+        return '👍👎'; // Thumbs sideways representation
+      case 'thumbs-down':
+        return '👎';
+      default:
+        return '👍';
+    }
   };
 
+  const feedbackSections = [
+    {
+      title: 'Facial Expression',
+      metric: analysis.facial_expression,
+    },
+    {
+      title: 'Eye Contact',
+      metric: analysis.eye_contact,
+    },
+    {
+      title: 'Body Language',
+      metric: analysis.body_language,
+    },
+    {
+      title: 'Tone',
+      metric: analysis.tone,
+    },
+  ];
+
   return (
-    <div className={`p-4 rounded-xl border ${getBgColor(item.score)}`}>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-bold text-gray-800">{title}</h3>
-        <ScoreIcon score={item.score} />
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Progress Bar */}
+      <div className="w-full py-6 px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between relative">
+            <div className="absolute top-5 left-10 right-10 h-1 bg-white -z-10" />
+            <div 
+              className="absolute top-5 left-0 h-1 bg-[#5E7381] -z-10 transition-all duration-500"
+              style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
+            />
+
+            {steps.map((step) => (
+              <div key={step.number} className="flex flex-col items-center">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                    step.number <= currentStep
+                      ? 'bg-[#5E7381] text-white'
+                      : 'bg-white text-gray-600'
+                  }`}
+                >
+                  {step.number}
+                </div>
+                <span
+                  className={`mt-2 text-sm font-medium ${
+                    step.number <= currentStep
+                      ? 'text-[#5E7381]'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      <p className="text-sm text-gray-700 leading-relaxed">{item.feedback}</p>
-    </div>
-  );
-};
 
-export default function ResultsPage({ analysis, onNext, onRetry, isLastStep }: ResultsPageProps) {
-  if (!analysis) return <div>Loading results...</div>;
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center px-8 pb-8 overflow-hidden">
+        <div className="max-w-6xl w-full h-full flex flex-col">
+          {/* Header */}
+          <h1 className="text-2xl font-bold text-[#5E7381] mb-8">
+            Here's How You Did
+          </h1>
 
-  return (
-    <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center p-8">
-      <div className="max-w-4xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        
-        <div className="p-8 bg-white border-b border-gray-100">
-          <h1 className="text-3xl font-bold text-[#5E7381] mb-2">Feedback</h1>
-          <p className="text-gray-500">Here is how you did on this scenario.</p>
-        </div>
+          {/* Feedback Cards Grid */}
+          <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-6">
+            {feedbackSections.map((section) => (
+              <div
+                key={section.title}
+                className="bg-[#5E7381] rounded-lg p-6 shadow-lg relative"
+              >
+                {/* Score Icon */}
+                <div className="absolute top-4 right-4">
+                  <span className="text-3xl">
+                    {getScoreIcon(section.metric.score)}
+                  </span>
+                </div>
 
-        <div className="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ScoreCard title="Facial Expression" item={analysis.facial_expression} />
-          <ScoreCard title="Eye Contact" item={analysis.eye_contact} />
-          <ScoreCard title="Body Language" item={analysis.body_language} />
-          <ScoreCard title="Tone of Voice" item={analysis.tone} />
-          
-          {analysis.token_usage && (
-             <div className="col-span-full mt-4 text-xs text-gray-400 text-center">
-                Estimated Cost: ${analysis.token_usage.estimatedCostUSD?.toFixed(6)}
-             </div>
-          )}
-        </div>
+                {/* Title */}
+                <h2 className="text-1xl font-semibold text-white mb-4 pr-10">
+                  {section.title}
+                </h2>
 
-        <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-          {onRetry && (
-            <button 
-                onClick={onRetry}
-                className="text-gray-500 hover:text-gray-800 font-medium px-4 py-2"
+                {/* Feedback */}
+                <p className="text-white text-md leading-relaxed">
+                  {section.metric.feedback}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center mt-1">
+            <button
+              onClick={onTryAgain}
+              className="px-6 py-3 bg-white text-[#5E7381] rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-                Try Again
+              ← Try Again
             </button>
-          )}
-          
-          <button
-            onClick={onNext}
-            className="px-8 py-3 bg-[#5E7381] text-white rounded-xl font-semibold hover:bg-[#4a5c6a] transition-all transform hover:scale-105 shadow-lg ml-auto"
-          >
-            {isLastStep ? 'Finish Lesson' : 'Next Scenario →'}
-          </button>
+            <button
+              onClick={onNext}
+              className="px-6 py-3 bg-[#5E7381] text-white rounded-lg font-semibold hover:bg-[#4a5c6a] transition-colors"
+            >
+              Next Lesson →
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -26,7 +26,7 @@ export class GeminiService {
       `;
 
       const result = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3-pro-preview",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       });
 
@@ -82,7 +82,7 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-2.0-flash", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
+            model: "gemini-3-pro-preview", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
             contents: [
               {
                 parts: [
