@@ -26,7 +26,7 @@ export class GeminiService {
       ];
 
       const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3-pro-preview",
         contents: contents
       });
       return result.text || "";
@@ -53,7 +53,7 @@ export class GeminiService {
 
     try {
       const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3-pro-preview",
         contents: [{ text: prompt }]
       });
       const text = result.text || "";
@@ -125,7 +125,7 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3-pro-preview",
             contents: [
               {
                 fileData: {
