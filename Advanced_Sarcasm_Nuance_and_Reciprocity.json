@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "lessonId": "adv_sarcasm_03",
+  "lessonNumber": 3,
+  "lessonName": "Advanced Sarcasm: Nuance and Reciprocity",
+  "pages": [
+    {
+      "pageType": "definition",
+      "pageOrder": 0,
+      "term": "Deadpan Reciprocity",
+      "definition": "A subtle form of sarcasm where the speaker delivers an ironic statement with a flat, emotionless expression (deadpan). In advanced interactions, this invites a reciprocal response where the listener 'plays along' with the facade rather than acknowledging the irony directly.",
+      "visualCues": [
+        "Unblinking stare or prolonged eye contact",
+        "Neutral or completely relaxed mouth corners",
+        "Micro-expressions of amusement (tiny smirk) that vanish quickly",
+        "Still posture contrasting with the absurdity of the statement"
+      ],
+      "toneCues": [
+        "Monotone or flat pitch",
+        "Normal or slightly slower speaking tempo",
+        "Lack of typical stress markers on key words",
+        "Hyper-politeness or formal vocabulary in casual settings"
+      ]
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 1,
+      "scenario": {
+        "context": "Professional Setting: Post-Meeting",
+        "description": "You and a colleague just left a 3-hour meeting that achieved very little. Your colleague turns to you while checking their watch."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 5.5,
+        "tonalPrompt": "Flat, serious, and weary, but masking it with polite professional admiration."
+      },
+      "transcript": "I honestly believe that discussion about the stapler inventory was the highlight of my fiscal quarter. Truly riveting stuff.",
+      "appropriateResponse": {
+        "description": "Match the colleague's deadpan energy. Do not laugh or point out the sarcasm. Instead, escalate the absurdity of the praise to show you share their frustration.",
+        "keyElements": [
+          "Maintain a serious or thoughtful tone",
+          "Validate the absurd premise (that the meeting was good)",
+          "Add a detail that highlights the boredom without explicitly stating it"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 2,
+      "scenario": {
+        "context": "Social Setting: Failed Camping Trip",
+        "description": "You and a friend are attempting to set up a tent in a sudden, torrential downpour. Everything is soaked."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 6.2,
+        "tonalPrompt": "Cheery and optimistic, but slightly too loud to compete with the rain noise."
+      },
+      "transcript": "You know, the brochure really undersold the aquatic features of this campsite. It's like a spa treatment and a bedroom all in one.",
+      "appropriateResponse": {
+        "description": "Reciprocate the optimism. Do not complain about the rain. Frame the disaster as a luxury feature.",
+        "keyElements": [
+          "Adopt a cheerful, appreciative tone",
+          "Agree with the 'spa' assessment",
+          "Avoid negative words like 'wet', 'cold', or 'miserable'"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 3,
+      "scenario": {
+        "context": "Casual Setting: Cooking Mishap",
+        "description": "Your partner accidentally burnt the dinner lasagna to a crisp. It is completely black on top."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 4.8,
+        "tonalPrompt": "Thoughtful, critical, like an art critic examining a sculpture."
+      },
+      "transcript": "I think the char really adds a nice structural integrity to it. It's very bold to serve a dish that crunches before you even bite it.",
+      "appropriateResponse": {
+        "description": "Accept the 'compliment' as if you intended to burn it. Engage in the culinary critique of the disaster.",
+        "keyElements": [
+          "Use a proud or artistic tone",
+          "Claim the mistake was an intentional stylistic choice",
+          "Do not apologize immediately; play out the scene first"
+        ]
+      }
+    }
+  ]
+}
