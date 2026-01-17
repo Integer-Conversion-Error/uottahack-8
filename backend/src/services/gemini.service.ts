@@ -1,64 +1,50 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleAIFileManager, FileState } from '@google/generative-ai/server';
+import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import path from 'path';
 
 dotenv.config();
 
-// Initialize the standard Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-// Initialize the File Manager for uploads
-const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export class GeminiService {
 
-<<<<<<< HEAD
-  static async analyzeVideo(filePath: string, tone: string, promptContext: string): Promise<any> {
-=======
 
 
 
 
   static async analyzeVideo(filePath: string, tone: string, promptContext: string, presageData?: any): Promise<any> {
->>>>>>> origin/backend
     try {
-      const absolutePath = path.resolve(filePath);
-      console.log(`[GeminiService] Starting upload: ${absolutePath}`);
-
-      if (!fs.existsSync(absolutePath)) {
-        throw new Error(`File not found at path: ${absolutePath}`);
-      }
-
-      const stats = fs.statSync(absolutePath);
-      if (stats.size === 0) {
-        throw new Error("File is empty (0 bytes)");
-      }
-
-      // 1. Upload using GoogleAIFileManager
-      const uploadResponse = await fileManager.uploadFile(absolutePath, {
-        mimeType: "video/mp4",
-        displayName: "User Session Video",
+      const uploadResult = await ai.files.upload({
+        file: filePath,
+        config: {
+          mimeType: "video/mp4",
+          displayName: "User Uploaded Video"
+        }
       });
 
-      console.log(`[GeminiService] Uploaded file: ${uploadResponse.file.name} (${uploadResponse.file.uri})`);
+      if (!uploadResult.name) {
+        throw new Error("Upload failed: No file name returned");
+      }
+      const file = uploadResult;
+      console.log(`Uploaded video: ${file.name} (${file.uri})`);
 
-      // 2. Poll for processing completion
-      let file = await fileManager.getFile(uploadResponse.file.name);
-      while (file.state === FileState.PROCESSING) {
-        console.log("[GeminiService] Processing video...");
+      let processedFile = await ai.files.get({ name: file.name! });
+
+      while (processedFile.state === "PROCESSING") {
+        console.log("Processing video...");
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        file = await fileManager.getFile(uploadResponse.file.name);
+        processedFile = await ai.files.get({ name: file.name! });
       }
 
-      if (file.state === FileState.FAILED) {
+      if (processedFile.state === "FAILED") {
         throw new Error("Video processing failed.");
       }
 
-      console.log(`[GeminiService] Processing complete. State: ${file.state}`);
+      if (!processedFile.uri || !processedFile.mimeType) {
+        throw new Error("Video processing completed but returned no URI or MIME type");
+      }
 
-      // 3. Generate Content
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use 1.5 Flash for video
+      console.log(`Video processing complete: ${processedFile.uri}`);
 
       let prompt = `
           Analyze this video for social cues. 
@@ -73,7 +59,7 @@ export class GeminiService {
 
       prompt += `
           
-          Grade the user on these 4 items:
+          Grade the user on these 4 items based on how well they respond to the situation:
           1. Facial Expression
           2. Eye Contact
           3. Body Language
@@ -81,7 +67,7 @@ export class GeminiService {
 
           For each item, provide:
           - A score from these options: "thumbs-up", "thumbs-sideways", "thumbs-down"
-          - A 30-40 word feedback section explaining the score.
+          - A 30-40 word feedback section explaining the score and offering advice.
 
           Return the result ONLY as a valid JSON object with the following schema:
           {
@@ -92,28 +78,73 @@ export class GeminiService {
           }
         `;
 
-      const result = await model.generateContent([
-        {
-          fileData: {
-            mimeType: file.mimeType,
-            fileUri: file.uri
-          }
-        },
-        { text: prompt }
-      ]);
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          const result = await ai.models.generateContent({
+            model: "gemini-3-pro-preview",
+            contents: [
+              {
+                fileData: {
+                  mimeType: processedFile.mimeType!,
+                  fileUri: processedFile.uri!
+                }
+              },
+              { text: prompt }
+            ],
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "object",
+                properties: {
+                  facial_expression: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  },
+                  eye_contact: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  },
+                  body_language: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  },
+                  tone: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  }
+                },
+                required: ["facial_expression", "eye_contact", "body_language", "tone"]
+              }
+            }
+          });
 
-      const responseText = result.response.text();
-      console.log("[GeminiService] Raw Response:", responseText);
-
-      // Parse JSON
-      const jsonStr = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const parsedAnalysis = JSON.parse(jsonStr);
-
-      // Cleanup: delete file from Gemini to save storage
-      await fileManager.deleteFile(uploadResponse.file.name);
-      console.log("[GeminiService] Cleaned up remote file");
-
-      return parsedAnalysis;
+          // result.text should be valid JSON now
+          const responseText = result.text || "{}";
+          return JSON.parse(responseText);
+        } catch (jsonError) {
+          console.warn(`Analysis failed, retrying... (${retries} left)`, jsonError);
+          retries--;
+          if (retries === 0) throw jsonError;
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
 
     } catch (error) {
       console.error("Gemini Video Analysis Error:", error);
