@@ -39,7 +39,7 @@ export interface ISession extends Document {
 }
 
 const SessionSchema = new Schema<ISession>({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
     scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: true },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },

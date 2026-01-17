@@ -11,10 +11,10 @@ export const startSession = async (req: Request, res: Response) => {
     try {
         const { userId, scenarioId } = req.body;
 
-        if (!userId || !scenarioId) {
+        if (!scenarioId) {
             return res.status(400).json({
                 success: false,
-                message: 'userId and scenarioId are required'
+                message: 'scenarioId is required'
             });
         }
 
@@ -72,6 +72,9 @@ export const completeSession = async (req: Request, res: Response) => {
     try {
         const { sessionId } = req.params;
         const { transcript, presageData } = req.body;
+        console.log('Completing session:', sessionId);
+        console.log('File present:', !!req.file);
+        if (req.file) console.log('File path:', req.file.path, 'Mimetype:', req.file.mimetype);
 
         if (!req.file) {
             return res.status(400).json({
@@ -130,7 +133,7 @@ export const completeSession = async (req: Request, res: Response) => {
         console.error('Error completing session:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to complete session'
+            message: error instanceof Error ? error.message : 'Failed to complete session'
         });
     } finally {
         // Cleanup file
