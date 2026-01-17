@@ -4,7 +4,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ISession extends Document {
     userId: mongoose.Types.ObjectId;
-    scenarioId: mongoose.Types.ObjectId;
+    scenarioId?: mongoose.Types.ObjectId;
+    lessonId?: string;
     startedAt: Date;
     completedAt?: Date;
     durationSeconds: number;
@@ -40,7 +41,8 @@ export interface ISession extends Document {
 
 const SessionSchema = new Schema<ISession>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
-    scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: true },
+    scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: false }, // Made optional
+    lessonId: { type: String, required: false }, // Added for JSON lessons
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
     durationSeconds: { type: Number, default: 0 },
