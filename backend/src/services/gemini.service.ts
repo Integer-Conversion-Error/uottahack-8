@@ -11,25 +11,28 @@ export class GeminiService {
   // Generates a structured lesson plan (static JSON)
   static async generateLessonJSON(topic: string, difficulty: string): Promise<any> {
     const prompt = `
+  // Generates a structured lesson plan (static JSON)
+  static async generateLessonJSON(topic: string, difficulty: string): Promise<any> {
+    const prompt = `
       Create a structured lesson plan for learning about social cues, specifically focusing on "${topic}". 
-      Difficulty level: ${difficulty}.
+      Difficulty level: ${ difficulty }.
       Return the response ONLY as a valid JSON object with this structure:
-      {
-        "title": "Lesson Title",
+    {
+      "title": "Lesson Title",
         "sections": [
           {
             "header": "Section Header",
             "content": "Educational content..."
           }
         ],
-        "quiz": [
-          {
-            "question": "Question text",
-            "options": ["Option A", "Option B", "Option C"],
-            "correctAnswer": 0 // index
-          }
-        ]
-      }
+          "quiz": [
+            {
+              "question": "Question text",
+              "options": ["Option A", "Option B", "Option C"],
+              "correctAnswer": 0 // index
+            }
+          ]
+    }
     `;
 
     try {
@@ -40,58 +43,60 @@ export class GeminiService {
       const text = result.text || ""; // Check if .text() exists or if it's result.response.text()
       // In new SDK, result might have .text or .response...
       // User example: console.log(response.text); -> response is likely the result object.
-      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(jsonStr);
-    } catch (error) {
-      console.error("Gemini Lesson Generation Error:", error);
-      throw new Error("Failed to generate lesson content");
-    }
+      const jsonStr = text.replace(/```json / g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch(error) {
+    console.error("Gemini Lesson Generation Error:", error);
+    throw new Error("Failed to generate lesson content");
   }
+}
 
   // Analyzes facial expressions from an image
-  static async analyzeFacialCues(imageData: Buffer, mimeType: string): Promise<any> {
-    try {
-      const prompt = "Analyze the facial cues in this image. Identify the emotion, and list specific facial features (brows, eyes, mouth) that indicate this emotion. Provide feedback on how to interpret this.";
+  static async analyzeFacialCues(imageData: Buffer, mimeType: string): Promise < any > {
+  try {
+    const prompt = "Analyze the facial cues in this image. Identify the emotion, and list specific facial features (brows, eyes, mouth) that indicate this emotion. Provide feedback on how to interpret this.";
 
-      // Convert buffer to base64 for inline inclusion if possible, or upload.
-      // New SDK "contents" structure allows `inlineData`.
-      // Check if user example provides inline hint? No.
-      // But `inlineData` is standard Google API.
-      const contents = [
-        {
-          inlineData: {
-            data: imageData.toString('base64'),
-            mimeType: mimeType
-          }
-        },
-        { text: prompt }
-      ];
+    // Convert buffer to base64 for inline inclusion if possible, or upload.
+    // New SDK "contents" structure allows `inlineData`.
+    // Check if user example provides inline hint? No.
+    // But `inlineData` is standard Google API.
+    const contents = [
+      {
+        inlineData: {
+          data: imageData.toString('base64'),
+          mimeType: mimeType
+        }
+      },
+      { text: prompt }
+    ];
 
-      const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: contents
-      });
-      return result.text || "";
-    } catch (error) {
-      console.error("Gemini Vision Analysis Error:", error);
-      throw new Error("Failed to analyze image");
-    }
+    const result = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: contents
+    });
+    return result.text || "";
+  } catch(error) {
+    console.error("Gemini Vision Analysis Error:", error);
+    throw new Error("Failed to analyze image");
   }
+}
 
+  static async analyzeResponse(userResponse: string, context: string): Promise < any > {
+  const prompt = `
   static async analyzeResponse(userResponse: string, context: string): Promise<any> {
     const prompt = `
-      Context: ${context}
+      Context: ${ context }
       User Response: "${userResponse}"
       
       Analyze the user's response. Is it appropriate for the context? 
       Give constructive feedback and suggest 2 better alternatives.
-      Return as JSON:
-      {
-        "isAppropriate": boolean,
-        "feedback": "string",
-        "betterAlternatives": ["string", "string"]
-      }
-    `;
+Return as JSON:
+{
+  "isAppropriate": boolean,
+    "feedback": "string",
+      "betterAlternatives": ["string", "string"]
+}
+`;
 
     try {
       const result = await ai.models.generateContent({
@@ -99,57 +104,57 @@ export class GeminiService {
         contents: [{ text: prompt }]
       });
       const text = result.text || "";
-      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(jsonStr);
+      const jsonStr = text.replace(/```json / g, '').replace(/```/g, '').trim();
+return JSON.parse(jsonStr);
     } catch (error) {
-      console.error("Gemini Response Analysis Error:", error);
-      throw new Error("Failed to analyze response");
-    }
+  console.error("Gemini Response Analysis Error:", error);
+  throw new Error("Failed to analyze response");
+}
   }
 
-  static async analyzeVideo(filePath: string, tone: string): Promise<any> {
-    try {
-      // 1. Upload the file
-      // Expecting ai.files.upload(path, config) or similar
-      // Based on user request "simpler SDK", hopefully it handles it.
-      // If not, I'll need to adjust.
-      const uploadResult = await ai.files.upload({
-        file: filePath,
-        config: {
-          mimeType: "video/mp4",
-          displayName: "User Uploaded Video"
-        }
-      });
-
-      if (!uploadResult.name) {
-        throw new Error("Upload failed: No file name returned");
+  static async analyzeVideo(filePath: string, tone: string): Promise < any > {
+  try {
+    // 1. Upload the file
+    // Expecting ai.files.upload(path, config) or similar
+    // Based on user request "simpler SDK", hopefully it handles it.
+    // If not, I'll need to adjust.
+    const uploadResult = await ai.files.upload({
+      file: filePath,
+      config: {
+        mimeType: "video/mp4",
+        displayName: "User Uploaded Video"
       }
-      const file = uploadResult; // Assuming result IS the file metadata or contains it.
-      console.log(`Uploaded video: ${file.name} (${file.uri})`);
+    });
 
-      // 2. Wait for processing?
-      // New SDK might auto-wait or we check state.
-      // Assuming we need to poll if state is PROCESSING.
-      let processedFile = await ai.files.get({ name: file.name! });
+    if(!uploadResult.name) {
+  throw new Error("Upload failed: No file name returned");
+}
+const file = uploadResult; // Assuming result IS the file metadata or contains it.
+console.log(`Uploaded video: ${file.name} (${file.uri})`);
 
-      while (processedFile.state === "PROCESSING") {
-        console.log("Processing video...");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        processedFile = await ai.files.get({ name: file.name! });
-      }
+// 2. Wait for processing?
+// New SDK might auto-wait or we check state.
+// Assuming we need to poll if state is PROCESSING.
+let processedFile = await ai.files.get({ name: file.name! });
 
-      if (processedFile.state === "FAILED") {
-        throw new Error("Video processing failed.");
-      }
+while (processedFile.state === "PROCESSING") {
+  console.log("Processing video...");
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  processedFile = await ai.files.get({ name: file.name! });
+}
 
-      if (!processedFile.uri || !processedFile.mimeType) {
-        throw new Error("Video processing completed but returned no URI or MIME type");
-      }
+if (processedFile.state === "FAILED") {
+  throw new Error("Video processing failed.");
+}
 
-      console.log(`Video processing complete: ${processedFile.uri}`);
+if (!processedFile.uri || !processedFile.mimeType) {
+  throw new Error("Video processing completed but returned no URI or MIME type");
+}
 
-      // 3. Generate content with retries for JSON parsing
-      const prompt = `
+console.log(`Video processing complete: ${processedFile.uri}`);
+
+// 3. Generate content with retries for JSON parsing
+const prompt = `
           Analyze this video for social cues. The user is attempting to convey a tone of: "${tone}".
           
           Grade the user on these 4 items:
@@ -171,35 +176,35 @@ export class GeminiService {
           }
         `;
 
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          const result = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: [
-              {
-                fileData: {
-                  mimeType: processedFile.mimeType!,
-                  fileUri: processedFile.uri!
-                }
-              },
-              { text: prompt }
-            ]
-          });
-          const response = result.text || "";
-          const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
-          return JSON.parse(jsonStr);
-        } catch (jsonError) {
-          console.warn(`JSON parsing failed, retrying... (${retries} left)`);
-          retries--;
-          if (retries === 0) throw jsonError;
-          await new Promise(r => setTimeout(r, 1000));
-        }
-      }
+let retries = 3;
+while (retries > 0) {
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        {
+          fileData: {
+            mimeType: processedFile.mimeType!,
+            fileUri: processedFile.uri!
+          }
+        },
+        { text: prompt }
+      ]
+    });
+    const response = result.text || "";
+    const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (jsonError) {
+    console.warn(`JSON parsing failed, retrying... (${retries} left)`);
+    retries--;
+    if (retries === 0) throw jsonError;
+    await new Promise(r => setTimeout(r, 1000));
+  }
+}
 
     } catch (error) {
-      console.error("Gemini Video Analysis Error:", error);
-      throw error;
-    }
+  console.error("Gemini Video Analysis Error:", error);
+  throw error;
+}
   }
 }

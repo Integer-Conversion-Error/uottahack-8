@@ -57,11 +57,13 @@ export const completeLesson = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'User or Lesson not found' });
         }
 
-        // Check if already completed to avoid duplicate XP
-        if (!user.completedLessons.includes(lesson._id as any)) {
-            user.completedLessons.push(lesson._id as any);
-            user.xp += lesson.xpReward;
-            // Update streak or stats if needed
+        // Check if user has completed this lesson (using stats instead)
+        const hasCompleted = user.stats.scenariosCompleted > 0;
+
+        if (!hasCompleted) {
+            // Increment completed scenarios
+            user.stats.scenariosCompleted += 1;
+            user.stats.overallEmpathyScore += 10;
             await user.save();
         }
 

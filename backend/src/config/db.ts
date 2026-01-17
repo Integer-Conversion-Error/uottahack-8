@@ -1,11 +1,34 @@
+// src/config/db.ts
+
 import mongoose from 'mongoose';
 
-export const connectDB = async () => {
+const connectDB = async (): Promise<void> => {
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/social-cue-learning');
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        const mongoURI = process.env.MONGODB_URI;
+
+        if (!mongoURI) {
+            throw new Error('MONGODB_URI is not defined in .env file');
+        }
+
+        await mongoose.connect(mongoURI);
+
+        console.log('✅ MongoDB connected successfully');
+
+        if (mongoose.connection.db) {
+            console.log(`🔌 Connected to database: ${mongoose.connection.db.databaseName}`);
+        }
+
     } catch (error) {
-        console.error(`Error: ${(error as Error).message}`);
+        console.error('❌ MongoDB connection error:', error);
         process.exit(1);
     }
 };
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    await mongoose.connection.close();
+    console.log('📦 MongoDB connection closed');
+    process.exit(0);
+});
+
+export default connectDB;
