@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Facial Cue Training Lesson Schema",
+  "description": "Schema for lessons in the facial cue training application",
+  "type": "object",
+  "lessonId": "adv_sarc_05",
+  "lessonNumber": 5,
+  "lessonName": "Advanced Sarcasm: Subtlety and Deadpan",
+  "pages": [
+    {
+      "pageType": "definition",
+      "pageOrder": 0,
+      "term": "Deadpan Sarcasm",
+      "definition": "A highly nuanced form of sarcasm delivered with a neutral, serious, or impassive expression. Unlike overt sarcasm, which uses exaggerated pitch changes, deadpan relies entirely on the contradiction between the statement and the context.",
+      "visualCues": [
+        "Unblinking, intense eye contact",
+        "Neutral or completely relaxed facial muscles",
+        "A micro-expression of amusement (smirk) that appears only briefly",
+        "Stillness of the head (lack of nodding or shaking)"
+      ],
+      "toneCues": [
+        "Monotone or flat delivery",
+        "Standard volume (no shouting or whispering)",
+        "Slightly faster tempo than usual speech",
+        "Lack of laughter or audible cues typically signaling a joke"
+      ]
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 1,
+      "scenario": {
+        "context": "Two senior engineers are looking at a server rack that has completely overheated and melted some wiring.",
+        "description": "The situation is visibly catastrophic. The speakers share a bond of professional cynicism. The speaker is not attacking the listener, but commenting on the situation."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 4.5,
+        "tonalPrompt": "Flat, dry, devoid of emotion, slightly weary."
+      },
+      "transcript": "Well, looking at this smoke, I'd say the cooling system is performing exactly as specified in the manual.",
+      "appropriateResponse": {
+        "description": "Match the dry wit. Do not panic or take the statement literally. Acknowledge the disaster through similar understatement.",
+        "keyElements": [
+          "Maintain a calm, flat tone",
+          "Agree with the absurdity of the statement",
+          "Do not offer a literal correction about the manual"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 2,
+      "scenario": {
+        "context": "A couple is hiking. They have been lost for two hours, and it has just started to hail.",
+        "description": "Both partners are miserable, but they cope through shared humor. The speaker is trying to lighten the mood by framing the misery as a luxury experience."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 5.2,
+        "tonalPrompt": "Polite, conversational, as if reviewing a fine wine, despite the background noise of hail."
+      },
+      "transcript": "You know, I really think the hail adds a textural element to the hike that mere rain just can't provide.",
+      "appropriateResponse": {
+        "description": "Lean into the bit. Treat the hail as a positive feature to build camaraderie in a bad situation.",
+        "keyElements": [
+          "Validate the 'luxury' aspect of the complaint",
+          "Add another 'positive' feature of the miserable situation",
+          "Avoid apologizing for getting lost"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 3,
+      "scenario": {
+        "context": "Two friends are watching a movie that is critically acclaimed but incredibly boring and slow-paced.",
+        "description": "They are sitting in silence until this comment breaks it. The sarcasm implies the movie is terrible without saying it directly."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 6.0,
+        "tonalPrompt": "Whispered, serious, intellectual tone, feigning deep engagement."
+      },
+      "transcript": "I'm on the edge of my seat. I think that character has blinked twice in the last forty-five minutes. Thrilling.",
+      "appropriateResponse": {
+        "description": "Acknowledge the boredom by validating the 'excitement' of the mundane action.",
+        "keyElements": [
+          "Use a hushed, mock-awed tone",
+          "Confirm the 'action' on screen",
+          "Reciprocate the critique of the pacing"
+        ]
+      }
+    }
+  ]
+}

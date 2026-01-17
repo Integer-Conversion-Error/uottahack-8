@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "lessonId": "LESSON_002_SARCASM_INT",
+  "lessonNumber": 2,
+  "lessonName": "Sarcasm: Intermediate Reciprocity",
+  "pages": [
+    {
+      "pageType": "definition",
+      "pageOrder": 0,
+      "term": "Communal Sarcasm",
+      "definition": "A shared form of irony where two people bond over a mutual annoyance or absurd situation. Unlike hostile sarcasm, this is used to build rapport by creating an 'us against the world' dynamic.",
+      "visualCues": [
+        "Shared eye contact followed by an eye roll",
+        "Asymmetrical smile or smirk",
+        "Relaxed posture indicating lack of genuine threat",
+        "Slow nodding while speaking"
+      ],
+      "toneCues": [
+        "Lowered pitch",
+        "Elongated vowels on key adjectives (e.g., 'grrrreat')",
+        "Monotone or deadpan delivery",
+        "Nasal quality on specific words"
+      ]
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 1,
+      "scenario": {
+        "context": "Workplace: Two colleagues attempting to use a printer that jams for the third time today.",
+        "description": "Both participants are frustrated, but the speaker uses sarcasm to lighten the mood rather than express anger at the listener."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 4.5,
+        "tonalPrompt": "Flat, dry tone with a slight sigh. Emphasis on 'advanced' and 'technology'."
+      },
+      "transcript": "I am simply in awe of this advanced technology. It keeps us humble.",
+      "appropriateResponse": {
+        "description": "A response that matches the dry wit, confirming the shared frustration without fixing the problem immediately.",
+        "keyElements": [
+          "Match the deadpan tone",
+          "Acknowledge the absurdity",
+          "Avoid literal technical advice initially"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 2,
+      "scenario": {
+        "context": "Social: Two friends arrive at a picnic spot just as it begins to pour rain.",
+        "description": "The speaker initiates a shared joke about their bad luck."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 5.2,
+        "tonalPrompt": "Overly enthusiastic voice that drops into a flat tone at the end."
+      },
+      "transcript": "Honestly, perfect weather. I was actually worried we might get too much sun today.",
+      "appropriateResponse": {
+        "description": "Validating the sarcasm by agreeing that the rain is actually 'preferable' in a joking manner.",
+        "keyElements": [
+          "Smirk or chuckle",
+          "Sarcastic agreement (e.g., 'Yeah, I love being soaked')",
+          "Shared eye roll"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 3,
+      "scenario": {
+        "context": "Commuting: Two strangers stuck on a train that has been delayed for 20 minutes.",
+        "description": "Building temporary solidarity through shared misery."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 6.0,
+        "tonalPrompt": "Slow, dragged out tempo. Deep sigh at the beginning."
+      },
+      "transcript": "I guess they just wanted to give us some quality time to really appreciate the tunnel walls.",
+      "appropriateResponse": {
+        "description": "Participating in the observational humor about the delay.",
+        "keyElements": [
+          "Relaxed facial expression",
+          "Reciprocal wit",
+          "Tone matching the low energy of the situation"
+        ]
+      }
+    }
+  ]
+}

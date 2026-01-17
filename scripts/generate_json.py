@@ -4,6 +4,7 @@ import json
 import google.generativeai as genai
 from dotenv import load_dotenv
 import typing_extensions as typing
+import re
 
 # Load environment variables from backend/.env
 # Assuming the script is run from the project root or scripts directory
@@ -127,11 +128,32 @@ if __name__ == "__main__":
     
     if json_output:
         print("\n--- Generated JSON ---")
-        print(json_output)
         
-        # Optionally save to file
-        with open("generated_structure.json", "w") as f:
-            f.write(json_output)
-        print("\nSaved to generated_structure.json")
+        try:
+            parsed_output = json.loads(json_output)
+            
+            # Ensure it's a list for iteration
+            if isinstance(parsed_output, dict):
+                lessons_to_save = [parsed_output]
+            else:
+                lessons_to_save = parsed_output
+            
+            for lesson in lessons_to_save:
+                # Sanitize filename
+                lesson_name = lesson.get("lessonName", "untitled_lesson")
+                safe_name = re.sub(r'[^a-zA-Z0-9]', '_', lesson_name)
+                # Remove repeated underscores
+                safe_name = re.sub(r'_+', '_', safe_name).strip('_')
+                
+                filename = f"{safe_name}.json"
+                
+                with open(filename, "w") as f:
+                    json.dump(lesson, f, indent=2)
+                print(f"Saved lesson to: {filename}")
+                
+        except json.JSONDecodeError:
+            print("Error: Could not parse generated JSON for saving.")
+            print(json_output)
+            
     else:
         print("Failed to generate content.")
