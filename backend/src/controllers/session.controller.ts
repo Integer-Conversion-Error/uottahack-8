@@ -103,7 +103,7 @@ export const completeSession = async (req: Request, res: Response) => {
         const promptContext = `Scenario: ${scenario.title}. Situation: ${scenario.context?.situation || scenario.description}. Audio Prompt: "${scenario.audio?.transcript || 'N/A'}"`;
 
         // Run AI analysis
-        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext);
+        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);
 
         // Save analysis
         session.analysis = {

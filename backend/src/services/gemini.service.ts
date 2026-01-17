@@ -13,7 +13,15 @@ const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY || '');
 
 export class GeminiService {
 
+<<<<<<< HEAD
   static async analyzeVideo(filePath: string, tone: string, promptContext: string): Promise<any> {
+=======
+
+
+
+
+  static async analyzeVideo(filePath: string, tone: string, promptContext: string, presageData?: any): Promise<any> {
+>>>>>>> origin/backend
     try {
       const absolutePath = path.resolve(filePath);
       console.log(`[GeminiService] Starting upload: ${absolutePath}`);
@@ -52,12 +60,18 @@ export class GeminiService {
       // 3. Generate Content
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use 1.5 Flash for video
 
-      const prompt = `
+      let prompt = `
           Analyze this video for social cues. 
           
           Context:
           - Target Tone: "${tone}"
-          - Situation/Prompt user is responding to: "${promptContext}"
+          - Situation/Prompt user is responding to: "${promptContext}"`;
+
+      if (presageData) {
+        prompt += `\n          - Supplementary Biometric Data (Presage): ${JSON.stringify(presageData)}`;
+      }
+
+      prompt += `
           
           Grade the user on these 4 items:
           1. Facial Expression
