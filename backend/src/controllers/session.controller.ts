@@ -155,7 +155,7 @@ export const completeSession = async (req: Request, res: Response) => {
         }
         filePath = req.file.path;
 
-        const session = await Session.findById(sessionId).populate('scenarioId');
+        const session = await Session.findById(sessionId);
         if (!session) {
             return res.status(404).json({
                 success: false,

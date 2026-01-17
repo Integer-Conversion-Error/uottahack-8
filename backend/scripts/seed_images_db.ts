@@ -34,10 +34,20 @@ async function seedImagesDB() {
                 for (const page of lesson.pages) {
                     if (page.pageType === 'practice' && page.scenario) {
 
-                        // Check if imageUrl is missing or empty
-                        // Accessing via 'any' or flexible schema since it might not be typed yet
+                        // Check if imageUrl is missing or if the file doesn't exist
                         const p = page as any;
-                        if (!p.scenario.imageUrl) {
+                        let shouldGenerate = !p.scenario.imageUrl;
+
+                        if (p.scenario.imageUrl) {
+                            const existingFileName = path.basename(p.scenario.imageUrl);
+                            const existingPath = path.join(IMAGES_DIR, existingFileName);
+                            if (!fs.existsSync(existingPath)) {
+                                console.log(`  File missing for page ${page.pageOrder}: ${existingFileName}. Regenerating...`);
+                                shouldGenerate = true;
+                            }
+                        }
+
+                        if (shouldGenerate) {
                             console.log(`  Generating image for page ${page.pageOrder}...`);
 
                             const prompt = `Create a scene for the following scenario:
