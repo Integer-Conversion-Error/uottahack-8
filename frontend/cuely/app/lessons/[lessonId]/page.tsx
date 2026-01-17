@@ -37,20 +37,22 @@ export default function LessonPage({ params }: LessonPageProps) {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [practiceIndex, setPracticeIndex] = useState<number>(0);
 
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   const lessonData = getLesson(lessonId);
 
+  // Count total practice pages
+  const totalPractices = lessonData?.pages.filter((p: any) => p.pageType === 'practice').length || 0;
+
   useEffect(() => {
     // Only run animation if we have data and are in loading state
     if (pageIndex === -1 && lessonData) {
-       // ... animation logic ...
        if (titleRef.current && descriptionRef.current) {
           const tl = gsap.timeline({
             onComplete: () => {
-              // Auto-advance to definition page (index 0) after animation
               setTimeout(() => setPageIndex(0), 1000);
             }
           });
@@ -63,18 +65,14 @@ export default function LessonPage({ params }: LessonPageProps) {
     }
   }, [pageIndex, lessonData]);
 
-  // Start session when entering a practice page
+  // Start session once when lesson loads (not per practice)
   useEffect(() => {
-      if (lessonData && pageIndex >= 0 && pageIndex < lessonData.pages.length) {
-          const currentPage = lessonData.pages[pageIndex];
-          if (currentPage.pageType === 'practice' && !sessionId) {
-              startSession(currentPage);
-          }
+      if (lessonData && !sessionId && pageIndex >= 0) {
+          startSession();
       }
-  }, [pageIndex, lessonData, sessionId]);
+  }, [lessonData, pageIndex]);
 
-
-  const startSession = async (pageData: any) => {
+  const startSession = async () => {
       try {
           const res = await fetch('http://localhost:4000/api/sessions/start', {
               method: 'POST',
@@ -82,14 +80,15 @@ export default function LessonPage({ params }: LessonPageProps) {
               body: JSON.stringify({
                   userId: '65a000000000000000000000', // Mock User ID
                   lessonId: lessonId,
-                  difficulty: 'beginner', // Could come from lessonData
-                  title: pageData.scenario?.context || 'Practice Session'
+                  difficulty: 'beginner',
+                  title: lessonData.lessonName || 'Practice Session',
+                  totalPractices: totalPractices
               })
           });
           const data = await res.json();
           if (data.success) {
               setSessionId(data.data.sessionId);
-              console.log('Session started:', data.data.sessionId);
+              console.log('Session started:', data.data.sessionId, 'Total practices:', totalPractices);
           }
       } catch (err) {
           console.error('Failed to start session', err);
@@ -102,12 +101,13 @@ export default function LessonPage({ params }: LessonPageProps) {
           return;
       }
       setIsSubmitting(true);
-      
+
       const currentPage = lessonData.pages[pageIndex];
       const formData = new FormData();
       formData.append('video', blob, 'practice.webm');
       formData.append('transcript', currentPage.transcript || '');
-      // Pass context for analysis
+      formData.append('practiceIndex', String(practiceIndex));
+      formData.append('scenarioContext', currentPage.scenario?.context || '');
       formData.append('targetTone', lessonData.lessonName || 'Social Cue');
       formData.append('promptContext', currentPage.scenario?.context || 'Social interaction practice');
 
@@ -117,13 +117,11 @@ export default function LessonPage({ params }: LessonPageProps) {
               body: formData
           });
           const data = await res.json();
-          
+
           if (data.success) {
-              console.log('Analysis complete:', data.data.analysis);
+              console.log('Practice complete:', data.data);
               setAnalysisResult(data.data.analysis);
-              // Clear session ID so next practice page starts a new one
-              setSessionId(null); 
-              // Show feedback instead of auto-advancing
+              setPracticeIndex(prev => prev + 1);
               setShowFeedback(true);
           } else {
               console.error('Analysis failed:', data.message);
@@ -140,75 +138,6 @@ export default function LessonPage({ params }: LessonPageProps) {
   if (!lessonData) {
      return <div className="min-h-screen flex items-center justify-center">Lesson not found: {lessonId}</div>;
   }
-
-const sessionData = {
-  "_id": {
-    "$oid": "696bc7af5a00353cadbbcbee"
-  },
-  "scenarioId": {
-    "$oid": "696ba192bc3ace181383e4cb"
-  },
-  "durationSeconds": 104,
-  "sessionType": "practice",
-  "difficulty": "intermediate",
-  "response": {
-    "webcamSnapshots": [],
-    "audioUrl": "uploads\\1768671219629.webm",
-    "transcript": "User response transcript here"
-  },
-  "startedAt": {
-    "$date": "2026-01-17T17:32:31.587Z"
-  },
-  "createdAt": {
-    "$date": "2026-01-17T17:32:31.590Z"
-  },
-  "updatedAt": {
-    "$date": "2026-01-17T17:34:15.802Z"
-  },
-  "__v": 0,
-  "analysis": {
-    "rawScore": 0,
-    "facial_expression": {
-      "score": "thumbs-down",
-      "feedback": "Your expression remained neutral and focused on your own actions rather than the friend's distress. To show empathy, try furrowing your brows slightly or offering a sympathetic look to validate their feelings of failure."
-    },
-    "eye_contact": {
-      "score": "thumbs-down",
-      "feedback": "You spent the majority of the interaction looking up and away while fixing your hair. Consistent eye contact is crucial when someone is vulnerable, as looking away signals that you are distracted or uninterested."
-    },
-    "body_language": {
-      "score": "thumbs-down",
-      "feedback": "Grooming yourself while a friend shares devastating news can appear dismissive. Instead of tying your hair, you should face the person fully with an open posture and still hands to show they are your priority."
-    },
-    "tone": {
-      "score": "thumbs-down",
-      "feedback": "The visual distraction suggests a lack of immediate verbal support. Even if you were speaking, multi-tasking dilutes the sincerity of your tone. Ensure your voice is the primary focus and sounds warm, attentive, and undistracted."
-    }
-  },
-  "completedAt": {
-    "$date": "2026-01-17T17:34:15.799Z"
-  }
-}   
-
-    const parsedAnalysis = {
-        "analysis": {"facial_expression": {
-      "score": "thumbs-down",
-      "feedback": "Your expression remained neutral and focused on your own actions rather than the friend's distress. To show empathy, try furrowing your brows slightly or offering a sympathetic look to validate their feelings of failure."
-    },
-    "eye_contact": {
-      "score": "thumbs-down",
-      "feedback": "You spent the majority of the interaction looking up and away while fixing your hair. Consistent eye contact is crucial when someone is vulnerable, as looking away signals that you are distracted or uninterested."
-    },
-    "body_language": {
-      "score": "thumbs-down",
-      "feedback": "Grooming yourself while a friend shares devastating news can appear dismissive. Instead of tying your hair, you should face the person fully with an open posture and still hands to show they are your priority."
-    },
-    "tone": {
-      "score": "thumbs-down",
-      "feedback": "The visual} distraction suggests a lack of immediate verbal support. Even if you were speaking, multi-tasking dilutes the sincerity of your tone. Ensure your voice is the primary focus and sounds warm, attentive, and undistracted."
-    }
-}
-    }
 
   const handleNext = () => {
     if (pageIndex < lessonData.pages.length - 1) {
@@ -252,11 +181,12 @@ const sessionData = {
   // Intercept for Feedback/Results View
   if (showFeedback && analysisResult) {
       return (
-          <ResultsPage 
-            analysis={analysisResult} 
+          <ResultsPage
+            analysis={analysisResult}
             onNext={handleFeedbackNext}
-            isLastStep={pageIndex === lessonData.pages.length - 1}
-            onRetry={() => setShowFeedback(false)} // Simple retry just hides feedback
+            onTryAgain={() => setShowFeedback(false)}
+            currentStep={pageIndex + 1}
+            totalSteps={lessonData.pages.length + 1}
           />
       );
   }
@@ -313,17 +243,5 @@ const sessionData = {
     );
   }
 
-  if (currentPageData.pageType === 'results') {
-    return (
-      <ResultsPage
-        analysis={sessionData.analysis as SessionAnalysis}
-        onTryAgain={() => console.log('Go back to practice')}
-        onNext={() => console.log('Next lesson')}
-        currentStep={3}
-        totalSteps={3}
-        />
-    )
-  }
-
-  return null;
+  return <div>Unknown page type: {currentPageData.pageType}</div>;
 }

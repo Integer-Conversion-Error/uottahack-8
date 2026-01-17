@@ -4,9 +4,23 @@ import * as AnalysisController from '../controllers/analysis.controller';
 import * as TTSController from '../controllers/tts.controller';
 import * as sessionController from '../controllers/session.controller';
 import * as scenarioController from '../controllers/scenario.controller';
-
+import Session from '../models/Session';
 
 const router = Router();
+
+// Debug endpoint - list all sessions
+router.get('/debug/sessions', async (req, res) => {
+    try {
+        const sessions = await Session.find().sort({ createdAt: -1 }).limit(10);
+        res.json({
+            success: true,
+            count: sessions.length,
+            data: sessions
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: String(error) });
+    }
+});
 
 // Learning Routes
 router.get('/modules', LearningController.getModules);
@@ -24,6 +38,7 @@ router.post('/tts/speak', TTSController.speakText);
 // Session routes
 router.post('/sessions/start', sessionController.startSession);
 router.put('/sessions/:sessionId/complete', AnalysisController.upload.single('video'), sessionController.completeSession);
+router.post('/sessions/:sessionId/practice', AnalysisController.upload.single('video'), sessionController.addPractice);
 router.get('/sessions/:sessionId', sessionController.getSession);
 router.get('/sessions/user/:userId', sessionController.getUserSessions);
 

@@ -30,11 +30,35 @@ export const analyzeVideo = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "No video uploaded" });
         }
 
-        const { tone, context, presageData } = req.body;
+        let { tone, context, presageData } = req.body;
         if (!tone || !context) {
             // cleanup
             fs.unlinkSync(req.file.path);
             return res.status(400).json({ message: "Tone and Context are required" });
+        }
+
+        if (typeof presageData === 'string') {
+            try {
+                presageData = JSON.parse(presageData);
+            } catch (e) {
+                console.warn("Failed to parse presageData:", e);
+                // Continue without it or with raw string
+            }
+        }
+
+        // If no data came from frontend, try to run local C++ analysis
+        if (!presageData) {
+            try {
+                // Import Service if not already at top (it is not, need to check imports)
+                const { PresageService } = require('../services/presage.service');
+                const localAnalysis = await PresageService.analyzeVideoFile(req.file.path);
+                if (localAnalysis) {
+                    console.log("Using backend-generated Presage data.");
+                    presageData = localAnalysis;
+                }
+            } catch (err) {
+                console.log("Could not generate local Presage data:", err);
+            }
         }
 
         const analysis = await GeminiService.analyzeVideo(req.file.path, tone, context, presageData);

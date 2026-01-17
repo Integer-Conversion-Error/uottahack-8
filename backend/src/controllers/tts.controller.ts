@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import { ElevenLabsService } from '../services/elevenlabs.service';
 
 export const speakText = async (req: Request, res: Response) => {
-    const { text, voiceId, tone, context } = req.body;
+    const { text, voiceId, tonalPrompt, tone, context } = req.body;
     try {
-        const audioBuffer = await ElevenLabsService.generateSpeech(text, voiceId, tone, context);
+        const audioBuffer = await ElevenLabsService.generateSpeech(text, voiceId, tonalPrompt, tone, context);
 
         res.set({
             'Content-Type': 'audio/mpeg',
