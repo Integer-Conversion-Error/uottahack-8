@@ -1,5 +1,5 @@
 'use client';
-
+ 
 import { useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 
@@ -40,6 +40,8 @@ export default function WebcamCapture({
     console.error('Failed to access webcam');
   };
 
+  const chunksRef = useRef<Blob[]>([]);
+
   // Capture single image
   const captureImage = useCallback(() => {
     if (webcamRef.current) {
@@ -53,6 +55,7 @@ export default function WebcamCapture({
   // Start video recording
   const startRecording = useCallback(() => {
     if (webcamRef.current && webcamRef.current.stream) {
+      console.log('Starting recording...');
       const stream = webcamRef.current.stream;
       
       const mediaRecorder = new MediaRecorder(stream, {
@@ -60,11 +63,13 @@ export default function WebcamCapture({
       });
 
       mediaRecorderRef.current = mediaRecorder;
-      setRecordedChunks([]);
+      chunksRef.current = []; // Reset chunks
+      setRecordedChunks([]); 
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          setRecordedChunks((prev) => [...prev, event.data]);
+        console.log(`Video chunk received: ${event.data.size} bytes`);
+        chunksRef.current.push(event.data);
         }
       };
 
@@ -76,15 +81,20 @@ export default function WebcamCapture({
   // Stop video recording
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current) {
+      console.log('Stopping recording...');
       mediaRecorderRef.current.stop();
       
       mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        if (onStopRecording) onStopRecording(blob);
-        setRecordedChunks([]);
+      const totalSize = chunksRef.current.reduce((acc, chunk) => acc + chunk.size, 0);
+      console.log(`Recording stopped. Total size: ${totalSize} bytes. Chunks: ${chunksRef.current.length}`);
+      
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      chunksRef.current = []; // Clear after use
+      if (onStopRecording) onStopRecording(blob);
+      setRecordedChunks([]);
       };
     }
-  }, [recordedChunks, onStopRecording]);
+}, [onStopRecording]);
 
   return (
     <div className="relative w-full h-full flex flex-col items-center">
