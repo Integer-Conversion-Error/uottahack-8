@@ -49,9 +49,10 @@ export class ElevenLabsService {
                 `${API_URL}/text-to-speech/${voiceId}`,
                 {
                     text: finalText,
-                    model_id: "eleven_v3",
+                    model_id: "eleven_multilingual_v2",
                     voice_settings: {
-                        stability: 0.9,
+                        stability: 0.5,
+                        similarity_boost: 0.75,
                     },
                 },
                 {
@@ -64,8 +65,8 @@ export class ElevenLabsService {
             );
 
             return Buffer.from(response.data);
-        } catch (error) {
-            console.error("ElevenLabs TTS Error:", error);
+        } catch (error: any) {
+            console.error("ElevenLabs TTS Error:", error.response?.data || error.message);
             throw new Error("Failed to generate speech");
         }
     }
