@@ -1,7 +1,0 @@
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/presage-cli.dir
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/list_install_components.dir
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/install.dir
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/install/local.dir
-/mnt/c/Users/togoo/Desktop/Self Improvement/Coding Projects/uottahack-8/presage-cpp/build/CMakeFiles/install/strip.dir
