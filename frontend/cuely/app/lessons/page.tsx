@@ -34,7 +34,7 @@ export default function LessonsPage() {
           {AVAILABLE_LESSONS.map((lesson) => (
             <div
               key={lesson.id}
-              className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-sm hover:shadow-md transition-all border border-white/10 flex flex-col group hover:border-white/20"
+              className="bg-slate-500 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col"
             >
               <div className="mb-4">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-3 uppercase
@@ -43,8 +43,8 @@ export default function LessonsPage() {
                       'bg-red-500/20 text-red-300'}`}>
                     {lesson.difficulty}
                   </span>
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-100 transition-colors">{lesson.title}</h3>
-                  <p className="text-blue-100/60 text-sm line-clamp-3 leading-relaxed">{lesson.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{lesson.title}</h3>
+                  <p className="text-white text-sm line-clamp-3">{lesson.description}</p>
               </div>
               
               <div className="mt-auto pt-4 border-t border-white/5">
