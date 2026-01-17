@@ -143,6 +143,10 @@
                         "tonalPrompt": {
                             "type": "string",
                             "description": "Description of the tone for TTS generation"
+                        },
+                        "toneTag": {
+                            "type": "string",
+                            "description": "A bracketed tone tag (e.g., '[Sarcastic]') to guide Text-to-Speech generation"
                         }
                     }
                 },

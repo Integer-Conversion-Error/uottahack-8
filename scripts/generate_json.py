@@ -76,6 +76,7 @@ def generate_course_content(num_modules: int = 1, tone: str = "Sarcasm"):
 
         - Ensure the 'pages' array contains at least one of each page type defined in definitions (definition, practice) in a logical order.
         - For 'audioSample.url', ALWAYS use an empty string "".
+        - Popluate 'audioSample.toneTag' with a descriptive bracketed tag (e.g., "[Sarcastic]", "[Warmly]", "[Angry]") that matches the specific nuance of that example.
         - Focus on candor and reciprocity in interactions. The tone should be SHARED between speakers. Avoid one-sided scenarios where one person is {tone.lower()}/emotional and the other is stoic. Both participants should be engaging in the tonal context (e.g., both being {tone.lower()}).
         """
 
