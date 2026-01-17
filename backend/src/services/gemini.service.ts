@@ -10,60 +10,7 @@ export class GeminiService {
 
 
 
-  // Analyzes facial expressions from an image
-  static async analyzeFacialCues(imageData: Buffer, mimeType: string): Promise<any> {
-    try {
-      const prompt = "Analyze the facial cues in this image. Identify the emotion, and list specific facial features (brows, eyes, mouth) that indicate this emotion. Provide feedback on how to interpret this.";
 
-      const contents = [
-        {
-          inlineData: {
-            data: imageData.toString('base64'),
-            mimeType: mimeType
-          }
-        },
-        { text: prompt }
-      ];
-
-      const result = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
-        contents: contents
-      });
-      return result.text || "";
-    } catch (error) {
-      console.error("Gemini Vision Analysis Error:", error);
-      throw new Error("Failed to analyze image");
-    }
-  }
-
-  static async analyzeResponse(userResponse: string, context: string): Promise<any> {
-    const prompt = `
-      Context: ${context}
-      User Response: "${userResponse}"
-      
-      Analyze the user's response. Is it appropriate for the context? 
-      Give constructive feedback and suggest 2 better alternatives.
-      Return as JSON:
-      {
-        "isAppropriate": boolean,
-        "feedback": "string",
-        "betterAlternatives": ["string", "string"]
-      }
-    `;
-
-    try {
-      const result = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
-        contents: [{ text: prompt }]
-      });
-      const text = result.text || "";
-      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(jsonStr);
-    } catch (error) {
-      console.error("Gemini Response Analysis Error:", error);
-      throw new Error("Failed to analyze response");
-    }
-  }
 
   static async analyzeVideo(filePath: string, tone: string): Promise<any> {
     try {
@@ -134,13 +81,55 @@ export class GeminiService {
                 }
               },
               { text: prompt }
-            ]
+            ],
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "object",
+                properties: {
+                  facial_expression: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  },
+                  eye_contact: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  },
+                  body_language: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  },
+                  tone: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
+                  }
+                },
+                required: ["facial_expression", "eye_contact", "body_language", "tone"]
+              }
+            }
           });
-          const response = result.text || "";
-          const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
-          return JSON.parse(jsonStr);
+
+          // result.text should be valid JSON now
+          const responseText = result.text || "{}";
+          return JSON.parse(responseText);
         } catch (jsonError) {
-          console.warn(`JSON parsing failed, retrying... (${retries} left)`);
+          console.warn(`Analysis failed, retrying... (${retries} left)`, jsonError);
           retries--;
           if (retries === 0) throw jsonError;
           await new Promise(r => setTimeout(r, 1000));

@@ -22,42 +22,7 @@ const storage = multer.diskStorage({
 
 export const upload = multer({ storage: storage });
 
-export const analyzeFace = async (req: Request, res: Response) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No image uploaded' });
-        }
 
-        // For existing facial analysis that expects buffer, we need to read the file
-        // Since we switched to disk storage, req.file.buffer is undefined.
-        // We modify this to read from disk or existing logic needs adaptation.
-        // Reading file to buffer for compatibility with existing service method
-        const fileBuffer = fs.readFileSync(req.file.path);
-        const analysis = await GeminiService.analyzeFacialCues(fileBuffer, req.file.mimetype);
-
-        // Optimize: verify if we want to delete image immediately after analysis
-        fs.unlinkSync(req.file.path);
-
-        res.json({ analysis });
-    } catch (error) {
-        console.error("Facial Analysis Error:", error);
-        // Cleanup if error occurred and file exists
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-        res.status(500).json({ message: 'Analysis failed' });
-    }
-};
-
-export const analyzeResponse = async (req: Request, res: Response) => {
-    const { userResponse, context } = req.body;
-    try {
-        const result = await GeminiService.analyzeResponse(userResponse, context);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: 'Analysis failed' });
-    }
-};
 
 export const analyzeVideo = async (req: Request, res: Response) => {
     try {

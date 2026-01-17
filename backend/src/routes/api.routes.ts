@@ -15,9 +15,8 @@ router.get('/modules/:moduleId/lessons', LearningController.getLessonsByModule);
 router.post('/lessons/complete', LearningController.completeLesson);
 
 // Analysis Routes - Image upload handled by multer middleware in controller export, but applied here
-router.post('/analyze/face', AnalysisController.upload.single('image'), AnalysisController.analyzeFace);
 router.post('/analyze/video', AnalysisController.upload.single('video'), AnalysisController.analyzeVideo);
-router.post('/analyze/response', AnalysisController.analyzeResponse);
+
 
 // TTS Routes
 router.post('/tts/speak', TTSController.speakText);
