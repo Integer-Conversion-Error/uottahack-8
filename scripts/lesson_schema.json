@@ -1,0 +1,312 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Facial Cue Training Lesson Schema",
+    "description": "Schema for lessons in the facial cue training application",
+    "type": "object",
+    "required": [
+        "lessonId",
+        "lessonNumber",
+        "lessonName",
+        "pages"
+    ],
+    "properties": {
+        "lessonId": {
+            "type": "string",
+            "description": "Unique identifier for the lesson"
+        },
+        "lessonNumber": {
+            "type": "integer",
+            "description": "Sequential lesson number",
+            "minimum": 1
+        },
+        "lessonName": {
+            "type": "string",
+            "description": "Name of the lesson (e.g., 'Sarcasm', 'Empathy')"
+        },
+        "pages": {
+            "type": "array",
+            "description": "Ordered array of lesson pages",
+            "minItems": 4,
+            "items": {
+                "oneOf": [
+                    {
+                        "$ref": "#/definitions/loadingPage"
+                    },
+                    {
+                        "$ref": "#/definitions/definitionPage"
+                    },
+                    {
+                        "$ref": "#/definitions/practicePage"
+                    },
+                    {
+                        "$ref": "#/definitions/resultsPage"
+                    }
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "loadingPage": {
+            "type": "object",
+            "required": [
+                "pageType",
+                "pageOrder"
+            ],
+            "properties": {
+                "pageType": {
+                    "type": "string",
+                    "enum": [
+                        "loading"
+                    ]
+                },
+                "pageOrder": {
+                    "type": "integer",
+                    "description": "Order in the lesson flow (0-based index)"
+                },
+                "displayText": {
+                    "type": "string",
+                    "description": "Text to display during loading (auto-generated from lesson data if not provided)"
+                }
+            }
+        },
+        "definitionPage": {
+            "type": "object",
+            "required": [
+                "pageType",
+                "pageOrder",
+                "term",
+                "definition",
+                "visualCues",
+                "toneCues"
+            ],
+            "properties": {
+                "pageType": {
+                    "type": "string",
+                    "enum": [
+                        "definition"
+                    ]
+                },
+                "pageOrder": {
+                    "type": "integer",
+                    "description": "Order in the lesson flow (0-based index)"
+                },
+                "term": {
+                    "type": "string",
+                    "description": "The term being defined (e.g., 'Sarcasm')"
+                },
+                "definition": {
+                    "type": "string",
+                    "description": "Clear definition of the term"
+                },
+                "visualCues": {
+                    "type": "array",
+                    "description": "Visual cues to look for",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "toneCues": {
+                    "type": "array",
+                    "description": "Tone and vocal cues to listen for",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            }
+        },
+        "practicePage": {
+            "type": "object",
+            "required": [
+                "pageType",
+                "pageOrder",
+                "scenario",
+                "audioSample",
+                "transcript",
+                "appropriateResponse"
+            ],
+            "properties": {
+                "pageType": {
+                    "type": "string",
+                    "enum": [
+                        "practice"
+                    ]
+                },
+                "pageOrder": {
+                    "type": "integer",
+                    "description": "Order in the lesson flow (0-based index)"
+                },
+                "scenario": {
+                    "type": "object",
+                    "required": [
+                        "context",
+                        "description"
+                    ],
+                    "properties": {
+                        "context": {
+                            "type": "string",
+                            "description": "The situational context for the practice"
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Additional details about the scenario"
+                        }
+                    }
+                },
+                "audioSample": {
+                    "type": "object",
+                    "required": [
+                        "url",
+                        "duration"
+                    ],
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "URL to the audio sample file"
+                        },
+                        "duration": {
+                            "type": "number",
+                            "description": "Duration of audio in seconds"
+                        }
+                    }
+                },
+                "transcript": {
+                    "type": "string",
+                    "description": "Text transcript of the audio sample"
+                },
+                "appropriateResponse": {
+                    "type": "object",
+                    "required": [
+                        "description",
+                        "keyElements"
+                    ],
+                    "properties": {
+                        "description": {
+                            "type": "string",
+                            "description": "Description of what an appropriate response looks/sounds like"
+                        },
+                        "keyElements": {
+                            "type": "array",
+                            "description": "Key elements that should be present in the response",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "userRecording": {
+                    "type": "object",
+                    "description": "User's recorded practice attempt",
+                    "properties": {
+                        "videoUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "URL to user's recorded video"
+                        },
+                        "submittedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Timestamp when video was submitted"
+                        }
+                    }
+                }
+            }
+        },
+        "resultsPage": {
+            "type": "object",
+            "required": [
+                "pageType",
+                "pageOrder",
+                "evaluation"
+            ],
+            "properties": {
+                "pageType": {
+                    "type": "string",
+                    "enum": [
+                        "results"
+                    ]
+                },
+                "pageOrder": {
+                    "type": "integer",
+                    "description": "Order in the lesson flow (0-based index)"
+                },
+                "evaluation": {
+                    "type": "object",
+                    "required": [
+                        "facialExpression",
+                        "bodyLanguage",
+                        "tone",
+                        "eyeContact"
+                    ],
+                    "properties": {
+                        "facialExpression": {
+                            "$ref": "#/definitions/evaluationMetric"
+                        },
+                        "bodyLanguage": {
+                            "$ref": "#/definitions/evaluationMetric"
+                        },
+                        "tone": {
+                            "$ref": "#/definitions/evaluationMetric"
+                        },
+                        "eyeContact": {
+                            "$ref": "#/definitions/evaluationMetric"
+                        },
+                        "overallFeedback": {
+                            "type": "string",
+                            "description": "General feedback summary"
+                        }
+                    }
+                },
+                "canRetry": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether user can go back to practice again"
+                }
+            }
+        },
+        "evaluationMetric": {
+            "type": "object",
+            "required": [
+                "score",
+                "feedback"
+            ],
+            "properties": {
+                "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score out of 100 for this metric"
+                },
+                "rating": {
+                    "type": "string",
+                    "enum": [
+                        "excellent",
+                        "good",
+                        "needs-improvement"
+                    ],
+                    "description": "Categorical rating"
+                },
+                "feedback": {
+                    "type": "string",
+                    "description": "Specific feedback for this metric"
+                },
+                "strengths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "What the user did well"
+                },
+                "improvements": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Areas for improvement"
+                }
+            }
+        }
+    }
+}
