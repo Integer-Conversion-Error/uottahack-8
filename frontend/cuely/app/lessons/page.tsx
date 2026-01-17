@@ -21,7 +21,7 @@ const AVAILABLE_LESSONS = [
 
 export default function LessonsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <header className="mb-10 text-center">
             <h1 className="text-4xl font-bold mb-4 text-slate-800">Explore Lessons</h1>
@@ -34,7 +34,7 @@ export default function LessonsPage() {
           {AVAILABLE_LESSONS.map((lesson) => (
             <div
               key={lesson.id}
-              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col"
+              className="bg-slate-500 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col"
             >
               <div className="mb-4">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide mb-2
@@ -43,14 +43,14 @@ export default function LessonsPage() {
                       'bg-red-100 text-red-700'}`}>
                     {lesson.difficulty.toUpperCase()}
                   </span>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{lesson.title}</h3>
-                  <p className="text-gray-600 text-sm line-clamp-3">{lesson.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{lesson.title}</h3>
+                  <p className="text-white text-sm line-clamp-3">{lesson.description}</p>
               </div>
               
               <div className="mt-auto pt-4 border-t border-gray-50">
                   <Link 
                     href={`/lessons/${lesson.id}`} 
-                    className="block w-full text-center py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium"
+                    className="block w-full text-center py-2 bg-white text-slate-500 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                   >
                     Start Lesson
                   </Link>
