@@ -2,44 +2,29 @@
 
 import { Request, Response } from 'express';
 import Session from '../models/Session';
-import Scenario from '../models/Scenario';
 import { GeminiService } from '../services/gemini.service';
 import fs from 'fs';
 
 // Start a new training session (1 session per lesson)
 export const startSession = async (req: Request, res: Response) => {
     try {
-        const { userId, scenarioId, lessonId, difficulty, title, totalPractices } = req.body;
+        const { userId, lessonId, difficulty, title, totalPractices } = req.body;
+
+        if (!lessonId) {
+            return res.status(400).json({ success: false, message: 'lessonId is required' });
+        }
 
         let sessionData: any = {
             userId,
+            lessonId,
+            difficulty: difficulty || 'beginner',
+            totalPractices: totalPractices || 1,
             startedAt: new Date(),
             sessionType: 'practice',
             practices: [],
             completedPractices: 0,
             response: { webcamSnapshots: [] }
         };
-
-        if (scenarioId) {
-            // Traditional flow with DB-backed scenario
-            const scenario = await Scenario.findById(scenarioId);
-            if (!scenario) {
-                return res.status(404).json({ success: false, message: 'Scenario not found' });
-            }
-            sessionData.scenarioId = scenarioId;
-            sessionData.difficulty = scenario.difficulty;
-            sessionData.totalPractices = 1;
-            // Increment stats
-            scenario.stats.timesAttempted += 1;
-            await scenario.save();
-        } else if (lessonId) {
-            // New flow for JSON lessons with multiple practices
-            sessionData.lessonId = lessonId;
-            sessionData.difficulty = difficulty || 'beginner';
-            sessionData.totalPractices = totalPractices || 1;
-        } else {
-            return res.status(400).json({ success: false, message: 'Either scenarioId or lessonId is required' });
-        }
 
         const session = new Session(sessionData);
         await session.save();
@@ -49,7 +34,7 @@ export const startSession = async (req: Request, res: Response) => {
             data: {
                 sessionId: session._id,
                 totalPractices: session.totalPractices,
-                scenario: scenarioId ? undefined : { title: title || 'Custom Lesson' }
+                lesson: { title: title || 'Custom Lesson' }
             }
         });
 
@@ -179,20 +164,8 @@ export const completeSession = async (req: Request, res: Response) => {
         }
 
         // Determine tone and context
-        let targetTone = req.body.targetTone;
-        let promptContext = req.body.promptContext;
-
-        if (!targetTone || !promptContext) {
-            if (session.scenarioId) {
-                const scenario = session.scenarioId as any;
-                targetTone = targetTone || scenario.category || "General Social Cue";
-                promptContext = promptContext || `Scenario: ${scenario.title}. Situation: ${scenario.context?.situation || scenario.description}. Audio Prompt: "${scenario.audio?.transcript || 'N/A'}"`;
-            } else {
-                console.warn("Missing analysis context (tone/prompt) for session", sessionId);
-                targetTone = targetTone || "General";
-                promptContext = promptContext || "User is practicing a social interaction.";
-            }
-        }
+        let targetTone = req.body.targetTone || "General Social Cue";
+        let promptContext = req.body.promptContext || scenarioContext || "User is practicing a social interaction.";
 
         // Run AI analysis
         const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);
@@ -276,8 +249,7 @@ export const getSession = async (req: Request, res: Response) => {
         const { sessionId } = req.params;
 
         const session = await Session.findById(sessionId)
-            .populate('userId', 'name email')
-            .populate('scenarioId', 'title category difficulty');
+            .populate('userId', 'name email');
 
         if (!session) {
             return res.status(404).json({
@@ -307,7 +279,6 @@ export const getUserSessions = async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 20;
 
         const sessions = await Session.find({ userId })
-            .populate('scenarioId', 'title category difficulty')
             .sort({ startedAt: -1 })
             .limit(limit);
 

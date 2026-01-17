@@ -9,10 +9,10 @@ const AVAILABLE_LESSONS = [
     id: 'empathy_beg_001',
     title: 'Empathy: Introduction',
     description: 'Learn the basics of understanding and sharing emotions, focusing on reciprocal empathy and facial mirroring.',
-    difficulty: 'beginner'
+    difficulty: 'intermediate'
   },
   {
-    id: 'lesson-sarcasm-001',
+    id: 'lesson_sarcasm_001',
     title: 'Sarcasm',
     description: 'Master the art of recognizing and responding to sarcasm, understanding the mismatch between words and tone.',
     difficulty: 'intermediate'

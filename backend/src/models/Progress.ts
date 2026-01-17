@@ -17,7 +17,6 @@ export interface IProgress extends Document {
         bodyLanguage: number;
     };
 
-    scenariosPracticed: mongoose.Types.ObjectId[];
     achievementsUnlocked: string[];
 
     isStreakDay: boolean;
@@ -39,7 +38,6 @@ const ProgressSchema = new Schema<IProgress>({
         bodyLanguage: { type: Number, default: 0 }
     },
 
-    scenariosPracticed: [{ type: Schema.Types.ObjectId, ref: 'Scenario' }],
     achievementsUnlocked: [{ type: String }],
 
     isStreakDay: { type: Boolean, default: false },

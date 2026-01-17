@@ -1,6 +1,7 @@
 // app/lessons/[lessonId]/page.tsx
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect, useRef, use } from 'react';
 import { gsap } from 'gsap';
 import DefinitionPage from '@/components/DefinitionPage';
@@ -9,29 +10,18 @@ import Image from 'next/image';
 
 import PracticePage from '@/components/PracticePage';
 
-import EmpathyLesson from '@/data/Empathy_Introduction.json';
-import SarcasmLesson from '@/data/Sarcasm.json';
-
 interface LessonPageProps {
   params: Promise<{
     lessonId: string;
   }>;
 }
 
-const LESSON_MAP: Record<string, any> = {
-  [EmpathyLesson.lessonId]: EmpathyLesson,
-  [SarcasmLesson.lessonId]: SarcasmLesson,
-  'empathy-beg-001': EmpathyLesson, // Fallback ID matching file
-  'lesson-sarcasm-001': SarcasmLesson // Fallback ID matching file
-};
-
-const getLesson = (id: string) => LESSON_MAP[id] || null;
-
 export default function LessonPage({ params }: LessonPageProps) {
   // Unwrap params using React.use()
   const { lessonId } = use(params);
 
-  // Use index to track progress: -1 (loading), 0...N (pages), N+1 (results)
+  const [lessonData, setLessonData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState<number>(-1);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -42,7 +32,23 @@ export default function LessonPage({ params }: LessonPageProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
 
-  const lessonData = getLesson(lessonId);
+  // Fetch lesson data
+  useEffect(() => {
+    const fetchLesson = async () => {
+      try {
+        const res = await fetch(`http://localhost:4000/api/lessons/${lessonId}`);
+        const data = await res.json();
+        if (data.success) {
+          setLessonData(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch lesson:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLesson();
+  }, [lessonId]);
 
   // Count total practice pages
   const totalPractices = lessonData?.pages.filter((p: any) => p.pageType === 'practice').length || 0;
@@ -162,6 +168,29 @@ export default function LessonPage({ params }: LessonPageProps) {
   };
 
   // Loading Screen
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1E3A8A]">
+        <div className="text-white text-3xl font-bold animate-pulse">
+          Loading Lesson...
+        </div>
+      </div>
+    );
+  }
+
+  if (!lessonData) {
+     return (
+       <div className="min-h-screen flex flex-col items-center justify-center bg-[#1E3A8A] text-white">
+         <h1 className="text-4xl font-bold mb-4">Lesson Not Found</h1>
+         <p className="text-xl mb-8">We couldn't find the lesson with ID: {lessonId}</p>
+         <Link href="/lessons" className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-bold hover:bg-gray-100 transition-colors">
+            Back to Lessons
+         </Link>
+       </div>
+     );
+  }
+
+  // Initial Animation / Loading state
   if (pageIndex === -1) {
       // ... existing loading screen ...
        return (

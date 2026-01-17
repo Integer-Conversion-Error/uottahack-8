@@ -21,7 +21,6 @@ export interface IPracticeResult {
 
 export interface ISession extends Document {
     userId: mongoose.Types.ObjectId;
-    scenarioId?: mongoose.Types.ObjectId;
     lessonId?: string;
     startedAt: Date;
     completedAt?: Date;
@@ -79,7 +78,6 @@ const PracticeResultSchema = new Schema({
 
 const SessionSchema = new Schema<ISession>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
-    scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: false },
     lessonId: { type: String, required: false },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
