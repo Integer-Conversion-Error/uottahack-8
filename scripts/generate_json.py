@@ -5,6 +5,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import typing_extensions as typing
 import re
+from jsonschema import validate, ValidationError
 
 # Load environment variables from backend/.env
 # Assuming the script is run from the project root or scripts directory
@@ -32,22 +33,7 @@ except FileNotFoundError:
     print(f"Error: Schema file not found at {schema_path}")
     exit(1)
 
-def summarize_schema(schema):
-    """
-    Creates a brief summary of the schema structure for the prompt.
-    """
-    summary = []
-    if "properties" in schema:
-        summary.append("Root properties: " + ", ".join(schema["properties"].keys()))
-    
-    if "definitions" in schema:
-        summary.append("\nPage Types (definitions):")
-        for name, definition in schema["definitions"].items():
-            if "properties" in definition:
-                props = ", ".join(definition["properties"].keys())
-                summary.append(f"- {name}: {props}")
-                
-    return "\n".join(summary)
+
 
 def generate_course_content(num_modules: int = 1, tone: str = "Sarcasm"):
     """
@@ -65,7 +51,7 @@ def generate_course_content(num_modules: int = 1, tone: str = "Sarcasm"):
         return None
 
     lessons = []
-    schema_summary = summarize_schema(SCHEMA)
+    lessons = []
     
     for i in range(num_modules):
         # Determine difficulty/nuance based on module sequence
@@ -83,8 +69,6 @@ def generate_course_content(num_modules: int = 1, tone: str = "Sarcasm"):
         Lesson Number: {i+1}
         Difficulty Level: {difficulty}
         
-        Schema Summary:
-        {schema_summary}
         
         The output MUST be a valid JSON object that strictly adheres to the following JSON Schema:
         {json.dumps(SCHEMA, indent=2)}
@@ -139,6 +123,15 @@ if __name__ == "__main__":
                 lessons_to_save = parsed_output
             
             for lesson in lessons_to_save:
+                # Validate against schema
+                try:
+                    validate(instance=lesson, schema=SCHEMA)
+                    print(f"Validation successful for lesson: {lesson.get('lessonName')}")
+                except ValidationError as e:
+                    print(f"Schema Validation Error for lesson '{lesson.get('lessonName')}': {e.message}")
+                    continue
+
+                # Sanitize filename
                 # Sanitize filename
                 lesson_name = lesson.get("lessonName", "untitled_lesson")
                 safe_name = re.sub(r'[^a-zA-Z0-9]', '_', lesson_name)

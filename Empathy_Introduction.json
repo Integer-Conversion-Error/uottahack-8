@@ -1,0 +1,94 @@
+{
+  "lessonId": "empathy_beg_001",
+  "lessonNumber": 1,
+  "lessonName": "Empathy: Introduction",
+  "pages": [
+    {
+      "pageType": "definition",
+      "pageOrder": 0,
+      "term": "Empathy",
+      "definition": "Empathy is feeling what someone else is feeling. It is not just understanding the situation, but mirroring their emotion to show you are in it together. If they are sad, you show sadness. If they are excited, you show excitement.",
+      "visualCues": [
+        "Mirroring the other person's facial expression",
+        "Leaning in towards the person",
+        "Maintaining soft, connected eye contact",
+        "Nodding slowly to show you are following along"
+      ],
+      "toneCues": [
+        "Matching the speaker's volume (soft for sad, loud for happy)",
+        "Matching the speaker's speed",
+        "Using a warm, resonant voice quality",
+        "Sighing or gasping in time with the speaker"
+      ]
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 1,
+      "scenario": {
+        "context": "A friend has dropped their ice cream cone on the ground.",
+        "description": "Your friend is visibly upset and crying about the lost dessert."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 5.5,
+        "tonalPrompt": "Exaggerated sadness, loud crying, slow speech, trembling voice."
+      },
+      "transcript": "Oh no! Look at it! My double-scoop ice cream is all over the dirty sidewalk! I am so sad!",
+      "appropriateResponse": {
+        "description": "You should match their level of sadness and disappointment. Do not try to fix it immediately; first, join them in the feeling of loss.",
+        "keyElements": [
+          "Frowning deeply",
+          "Using a sad, low voice",
+          "Saying 'Oh no, that is terrible!'",
+          "Slumping shoulders to mirror their posture"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 2,
+      "scenario": {
+        "context": "A sibling just opened a birthday present they really wanted.",
+        "description": "The speaker is jumping up and down with extreme joy."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 4.2,
+        "tonalPrompt": "Extremely high pitch, fast pace, loud screaming, laughter."
+      },
+      "transcript": "Yes! Yes! I got the robot dog! I can't believe it! This is the best day of my life!",
+      "appropriateResponse": {
+        "description": "You must match their high energy. If you are calm, you will ruin the moment. You need to be loud and happy with them.",
+        "keyElements": [
+          "Wide open smile",
+          "Raised eyebrows",
+          "Loud, high-pitched cheering",
+          "Saying 'Wow! That is amazing!'"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 3,
+      "scenario": {
+        "context": "A classmate bumped their knee on a desk.",
+        "description": "The classmate is wincing and holding their knee in pain."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 3.8,
+        "tonalPrompt": "Sharp intakes of breath, groaning, strained voice indicating pain."
+      },
+      "transcript": "Owww! Ooh, that really hurts! I hit the corner right on my kneecap! Ouuuch!",
+      "appropriateResponse": {
+        "description": "You should physically recoil as if you felt the pain too. Your voice should sound strained and concerned, mirroring their physical discomfort.",
+        "keyElements": [
+          "Wincing face (squinting eyes, baring teeth slightly)",
+          "Making a sympathetic groaning sound",
+          "Saying 'Ouch, that looked painful!'",
+          "Leaning forward with concern"
+        ]
+      }
+    }
+  ]
+}

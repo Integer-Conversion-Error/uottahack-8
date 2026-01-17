@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "lessonId": "lesson-sarcasm-001",
+  "lessonNumber": 1,
+  "lessonName": "Sarcasm",
+  "pages": [
+    {
+      "pageType": "definition",
+      "pageOrder": 0,
+      "term": "Sarcasm",
+      "definition": "A form of communication where the speaker says the opposite of what they actually mean, often to be funny, playful, or to express frustration with a situation. In this lesson, we focus on obvious, exaggerated sarcasm meant to bond over a shared annoyance.",
+      "visualCues": [
+        "Eye rolling or exaggerated widening of eyes",
+        "A lopsided smile or smirk",
+        "Slow, deliberate nodding",
+        "Deadpan expression followed by a smile"
+      ],
+      "toneCues": [
+        "Elongated syllables (drawing out words like 'greaaat')",
+        "Lower pitch than normal speaking voice",
+        "Heavy, exaggerated emphasis on specific adjectives",
+        "A nasal or monotone delivery"
+      ]
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 1,
+      "scenario": {
+        "context": "You and a friend are standing outside a movie theater. It is pouring rain and neither of you has an umbrella.",
+        "description": "Your friend looks up at the dark, stormy sky while water drips off their nose."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 4.5,
+        "tonalPrompt": "Slow, drawn out, heavy emphasis on 'beautiful' and 'perfect', deep pitch drop at the end."
+      },
+      "transcript": "Wow, just look at this absolutely beautiful weather. It is just perfect for a walk.",
+      "appropriateResponse": {
+        "description": "Reciprocate the sarcasm. Since the speaker is joking about the bad situation to lighten the mood, you should join in rather than pointing out the obvious reality.",
+        "keyElements": [
+          "Acknowledge the irony",
+          "Match the exaggerated tone",
+          "Add to the joke (e.g., mention getting a tan)"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 2,
+      "scenario": {
+        "context": "You walk into the breakroom at work and see the sink is overflowing with dirty dishes that have been there for days.",
+        "description": "Your coworker stands next to you, staring at the mess with a flat expression."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 5.2,
+        "tonalPrompt": "Fake sophistication, posh accent, feigned admiration."
+      },
+      "transcript": "I simply love what the team has done with the place. The smell of old coffee really adds a charming rustic vibe.",
+      "appropriateResponse": {
+        "description": "The coworker is using sarcasm to bond over a shared annoyance. Respond with candor by playing along with the 'artistic' interpretation of the mess.",
+        "keyElements": [
+          "Validate the frustration through humor",
+          "Do not offer a literal solution immediately",
+          "Use a playful, agreeing tone"
+        ]
+      }
+    },
+    {
+      "pageType": "practice",
+      "pageOrder": 3,
+      "scenario": {
+        "context": "You and your sibling are waiting in a line that hasn't moved for twenty minutes.",
+        "description": "Your sibling sighs loudly and leans heavily against the wall."
+      },
+      "audioSample": {
+        "url": "",
+        "duration": 3.8,
+        "tonalPrompt": "Monotone, flat, very unenthusiastic."
+      },
+      "transcript": "Slow down, everyone. This blistering speed is making me dizzy.",
+      "appropriateResponse": {
+        "description": "The speaker is using hyperbole (exaggeration) to highlight how slow the line is. The appropriate response is to share in the complaint using similar exaggeration.",
+        "keyElements": [
+          "Agree with the premise that the line is too fast (irony)",
+          "Maintain the shared frustration",
+          "Avoid literal correction"
+        ]
+      }
+    }
+  ]
+}
