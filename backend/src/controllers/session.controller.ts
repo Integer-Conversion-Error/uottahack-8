@@ -6,15 +6,17 @@ import Scenario from '../models/Scenario';
 import { GeminiService } from '../services/gemini.service';
 import fs from 'fs';
 
-// Start a new training session
+// Start a new training session (1 session per lesson)
 export const startSession = async (req: Request, res: Response) => {
     try {
-        const { userId, scenarioId, lessonId, difficulty, title, totalSteps } = req.body;
+        const { userId, scenarioId, lessonId, difficulty, title, totalPractices } = req.body;
 
         let sessionData: any = {
             userId,
             startedAt: new Date(),
             sessionType: 'practice',
+            practices: [],
+            completedPractices: 0,
             response: { webcamSnapshots: [] }
         };
 
@@ -26,15 +28,15 @@ export const startSession = async (req: Request, res: Response) => {
             }
             sessionData.scenarioId = scenarioId;
             sessionData.difficulty = scenario.difficulty;
+            sessionData.totalPractices = 1;
             // Increment stats
             scenario.stats.timesAttempted += 1;
             await scenario.save();
         } else if (lessonId) {
-            // New flow for JSON lessons
+            // New flow for JSON lessons with multiple practices
             sessionData.lessonId = lessonId;
             sessionData.difficulty = difficulty || 'beginner';
-            // We can store title/context in a metadata field if we added one, 
-            // but for now we rely on the client sending context during completion
+            sessionData.totalPractices = totalPractices || 1;
         } else {
             return res.status(400).json({ success: false, message: 'Either scenarioId or lessonId is required' });
         }
@@ -46,7 +48,7 @@ export const startSession = async (req: Request, res: Response) => {
             success: true,
             data: {
                 sessionId: session._id,
-                // Return dummy scenario object if needed for consistency, or just null
+                totalPractices: session.totalPractices,
                 scenario: scenarioId ? undefined : { title: title || 'Custom Lesson' }
             }
         });
@@ -60,12 +62,102 @@ export const startSession = async (req: Request, res: Response) => {
     }
 };
 
-// Complete session with analysis
+// Add a practice result to an existing session
+export const addPractice = async (req: Request, res: Response) => {
+    let filePath = '';
+    try {
+        const { sessionId } = req.params;
+        const { transcript, practiceIndex, scenarioContext, targetTone, promptContext } = req.body;
+
+        console.log('Adding practice to session:', sessionId, 'Practice index:', practiceIndex);
+        console.log('File present:', !!req.file);
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Video file is required'
+            });
+        }
+        filePath = req.file.path;
+
+        const session = await Session.findById(sessionId);
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Session not found'
+            });
+        }
+
+        // Determine tone for analysis
+        const tone = targetTone || "General Social Cue";
+        const context = promptContext || scenarioContext || "User is practicing a social interaction.";
+
+        // Run AI analysis
+        const analysisResult = await GeminiService.analyzeVideo(filePath, tone, context);
+
+        // Create practice result
+        const practiceResult = {
+            practiceIndex: parseInt(practiceIndex) || session.practices.length,
+            scenarioContext: scenarioContext || context,
+            transcript: transcript || '',
+            videoUrl: filePath,
+            completedAt: new Date(),
+            durationSeconds: 0,
+            analysis: {
+                rawScore: 0,
+                facial_expression: analysisResult.facial_expression,
+                eye_contact: analysisResult.eye_contact,
+                body_language: analysisResult.body_language,
+                tone: analysisResult.tone
+            }
+        };
+
+        // Add to practices array
+        session.practices.push(practiceResult);
+        session.completedPractices = session.practices.length;
+
+        // Check if all practices are complete
+        if (session.completedPractices >= session.totalPractices) {
+            session.completedAt = new Date();
+            session.durationSeconds = Math.floor(
+                (session.completedAt.getTime() - session.startedAt.getTime()) / 1000
+            );
+        }
+
+        await session.save();
+
+        res.json({
+            success: true,
+            data: {
+                sessionId: session._id,
+                practiceIndex: practiceResult.practiceIndex,
+                analysis: practiceResult.analysis,
+                completedPractices: session.completedPractices,
+                totalPractices: session.totalPractices,
+                isLessonComplete: session.completedPractices >= session.totalPractices
+            }
+        });
+
+    } catch (error) {
+        console.error('Error adding practice:', error);
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : 'Failed to add practice'
+        });
+    } finally {
+        // Cleanup file
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    }
+};
+
+// Complete session with analysis (legacy - for single practice sessions)
 export const completeSession = async (req: Request, res: Response) => {
     let filePath = '';
     try {
         const { sessionId } = req.params;
-        const { transcript, presageData } = req.body;
+        const { transcript, presageData, practiceIndex, scenarioContext } = req.body;
         console.log('Completing session:', sessionId);
         console.log('File present:', !!req.file);
         if (req.file) console.log('File path:', req.file.path, 'Mimetype:', req.file.mimetype);
@@ -86,23 +178,16 @@ export const completeSession = async (req: Request, res: Response) => {
             });
         }
 
-        // Store response data
-        if (transcript) session.response.transcript = transcript;
-        if (presageData) session.response.presageData = presageData;
-        session.response.audioUrl = req.file.path;
-
         // Determine tone and context
         let targetTone = req.body.targetTone;
         let promptContext = req.body.promptContext;
 
         if (!targetTone || !promptContext) {
-            // Fallback to scenario if available
             if (session.scenarioId) {
                 const scenario = session.scenarioId as any;
                 targetTone = targetTone || scenario.category || "General Social Cue";
                 promptContext = promptContext || `Scenario: ${scenario.title}. Situation: ${scenario.context?.situation || scenario.description}. Audio Prompt: "${scenario.audio?.transcript || 'N/A'}"`;
             } else {
-                // If no scenario and no manual override, we can't analyze effectively
                 console.warn("Missing analysis context (tone/prompt) for session", sessionId);
                 targetTone = targetTone || "General";
                 promptContext = promptContext || "User is practicing a social interaction.";
@@ -112,27 +197,62 @@ export const completeSession = async (req: Request, res: Response) => {
         // Run AI analysis
         const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);
 
-        // Save analysis
+        // Create practice result and add to array
+        const practiceResult = {
+            practiceIndex: parseInt(practiceIndex) || session.practices.length,
+            scenarioContext: scenarioContext || promptContext,
+            transcript: transcript || '',
+            videoUrl: filePath,
+            completedAt: new Date(),
+            durationSeconds: 0,
+            analysis: {
+                rawScore: 0,
+                facial_expression: analysisResult.facial_expression,
+                eye_contact: analysisResult.eye_contact,
+                body_language: analysisResult.body_language,
+                tone: analysisResult.tone
+            }
+        };
+
+        session.practices.push(practiceResult);
+        session.completedPractices = session.practices.length;
+
+        // Also store in legacy fields for backward compatibility
+        if (transcript) session.response.transcript = transcript;
+        if (presageData) session.response.presageData = presageData;
+        session.response.audioUrl = req.file.path;
         session.analysis = {
-            rawScore: 0, // Placeholder
+            rawScore: 0,
             facial_expression: analysisResult.facial_expression,
             eye_contact: analysisResult.eye_contact,
             body_language: analysisResult.body_language,
             tone: analysisResult.tone
         };
 
-        session.completedAt = new Date();
-        session.durationSeconds = Math.floor(
-            (session.completedAt.getTime() - session.startedAt.getTime()) / 1000
-        );
+        // Check if all practices are complete
+        if (session.completedPractices >= session.totalPractices) {
+            session.completedAt = new Date();
+            session.durationSeconds = Math.floor(
+                (session.completedAt.getTime() - session.startedAt.getTime()) / 1000
+            );
+        }
 
-        await session.save();
+        console.log('DEBUG: Session practices before save:', session.practices.length);
+        console.log('DEBUG: Session completedPractices:', session.completedPractices);
+
+        const savedSession = await session.save();
+        console.log('DEBUG: Session saved successfully. ID:', savedSession._id);
+        console.log('DEBUG: Saved practices count:', savedSession.practices.length);
 
         res.json({
             success: true,
             data: {
                 sessionId: session._id,
-                analysis: session.analysis
+                practiceIndex: practiceResult.practiceIndex,
+                analysis: practiceResult.analysis,
+                completedPractices: session.completedPractices,
+                totalPractices: session.totalPractices,
+                isLessonComplete: session.completedPractices >= session.totalPractices
             }
         });
 

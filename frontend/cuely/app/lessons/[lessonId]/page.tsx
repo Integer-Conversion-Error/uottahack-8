@@ -3,11 +3,11 @@
 
 import React, { useState, useEffect, useRef, use } from 'react';
 import { gsap } from 'gsap';
+import DefinitionPage from '@/components/DefinitionPage';
+import ResultsPage, { SessionAnalysis } from '@/components/ResultsPage';
 import Image from 'next/image';
 
 import PracticePage from '@/components/PracticePage';
-import DefinitionPage from '@/components/DefinitionPage';
-import ResultsPage from '@/components/ResultsPage';
 
 import EmpathyLesson from '@/data/Empathy_Introduction.json';
 import SarcasmLesson from '@/data/Sarcasm.json';
@@ -141,6 +141,75 @@ export default function LessonPage({ params }: LessonPageProps) {
      return <div className="min-h-screen flex items-center justify-center">Lesson not found: {lessonId}</div>;
   }
 
+const sessionData = {
+  "_id": {
+    "$oid": "696bc7af5a00353cadbbcbee"
+  },
+  "scenarioId": {
+    "$oid": "696ba192bc3ace181383e4cb"
+  },
+  "durationSeconds": 104,
+  "sessionType": "practice",
+  "difficulty": "intermediate",
+  "response": {
+    "webcamSnapshots": [],
+    "audioUrl": "uploads\\1768671219629.webm",
+    "transcript": "User response transcript here"
+  },
+  "startedAt": {
+    "$date": "2026-01-17T17:32:31.587Z"
+  },
+  "createdAt": {
+    "$date": "2026-01-17T17:32:31.590Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-17T17:34:15.802Z"
+  },
+  "__v": 0,
+  "analysis": {
+    "rawScore": 0,
+    "facial_expression": {
+      "score": "thumbs-down",
+      "feedback": "Your expression remained neutral and focused on your own actions rather than the friend's distress. To show empathy, try furrowing your brows slightly or offering a sympathetic look to validate their feelings of failure."
+    },
+    "eye_contact": {
+      "score": "thumbs-down",
+      "feedback": "You spent the majority of the interaction looking up and away while fixing your hair. Consistent eye contact is crucial when someone is vulnerable, as looking away signals that you are distracted or uninterested."
+    },
+    "body_language": {
+      "score": "thumbs-down",
+      "feedback": "Grooming yourself while a friend shares devastating news can appear dismissive. Instead of tying your hair, you should face the person fully with an open posture and still hands to show they are your priority."
+    },
+    "tone": {
+      "score": "thumbs-down",
+      "feedback": "The visual distraction suggests a lack of immediate verbal support. Even if you were speaking, multi-tasking dilutes the sincerity of your tone. Ensure your voice is the primary focus and sounds warm, attentive, and undistracted."
+    }
+  },
+  "completedAt": {
+    "$date": "2026-01-17T17:34:15.799Z"
+  }
+}   
+
+    const parsedAnalysis = {
+        "analysis": {"facial_expression": {
+      "score": "thumbs-down",
+      "feedback": "Your expression remained neutral and focused on your own actions rather than the friend's distress. To show empathy, try furrowing your brows slightly or offering a sympathetic look to validate their feelings of failure."
+    },
+    "eye_contact": {
+      "score": "thumbs-down",
+      "feedback": "You spent the majority of the interaction looking up and away while fixing your hair. Consistent eye contact is crucial when someone is vulnerable, as looking away signals that you are distracted or uninterested."
+    },
+    "body_language": {
+      "score": "thumbs-down",
+      "feedback": "Grooming yourself while a friend shares devastating news can appear dismissive. Instead of tying your hair, you should face the person fully with an open posture and still hands to show they are your priority."
+    },
+    "tone": {
+      "score": "thumbs-down",
+      "feedback": "The visual} distraction suggests a lack of immediate verbal support. Even if you were speaking, multi-tasking dilutes the sincerity of your tone. Ensure your voice is the primary focus and sounds warm, attentive, and undistracted."
+    }
+}
+    }
+
   const handleNext = () => {
     if (pageIndex < lessonData.pages.length - 1) {
       setPageIndex(pageIndex + 1);
@@ -244,5 +313,17 @@ export default function LessonPage({ params }: LessonPageProps) {
     );
   }
 
-  return <div>Unknown page type</div>;
+  if (currentPageData.pageType === 'results') {
+    return (
+      <ResultsPage
+        analysis={sessionData.analysis as SessionAnalysis}
+        onTryAgain={() => console.log('Go back to practice')}
+        onNext={() => console.log('Next lesson')}
+        currentStep={3}
+        totalSteps={3}
+        />
+    )
+  }
+
+  return null;
 }
