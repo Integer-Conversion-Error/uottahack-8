@@ -14,6 +14,7 @@ interface PracticePageProps {
     url: string;
     duration: number;
     tonalPrompt: string;
+    imageUrl?: string;
   };
   transcript: string;
   onNext: (blob: Blob) => void;
@@ -108,6 +109,16 @@ export default function PracticePage({
 
               <div className="mb-6">
                 <h3 className="text-lg uppercase tracking-wider text-gray-500 font-semibold mb-2">Situation</h3>
+                {/* Scenario Image */}
+                {audioSample.imageUrl && (
+                  <div className="mb-4 rounded-xl overflow-hidden shadow-sm">
+                    <img
+                      src={audioSample.imageUrl.startsWith('http') ? audioSample.imageUrl : `http://localhost:4000${audioSample.imageUrl}`}
+                      alt="Scenario visualization"
+                      className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
                 <p className="text-md text-gray-700 leading-relaxed">
                   {scenario.description}
                 </p>

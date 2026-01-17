@@ -15,6 +15,7 @@ app.use(express.json());
 // Routes
 app.use('/api', apiRoutes);
 app.use('/audio', express.static(path.join(__dirname, '../public/audio')));
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Server is running' });

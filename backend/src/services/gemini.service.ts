@@ -11,6 +11,30 @@ export class GeminiService {
 
 
 
+  static async generateImage(prompt: string): Promise<Buffer | null> {
+    try {
+      console.log(`Generating image with prompt: ${prompt}`);
+      const response = await ai.models.generateContent({
+        model: "gemini-3-pro-image-preview",
+        contents: prompt,
+      });
+
+      if (response && response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          // Check for inlineData
+          if (part.inlineData && part.inlineData.data) {
+            const imageData = part.inlineData.data;
+            return Buffer.from(imageData, "base64");
+          }
+        }
+      }
+      console.warn("No image data found in response");
+      return null;
+    } catch (error) {
+      console.error("Gemini Image Generation Error:", error);
+      return null;
+    }
+  }
 
   static async generateToneTags(text: string, tone: string, context: string = ""): Promise<string> {
     try {
