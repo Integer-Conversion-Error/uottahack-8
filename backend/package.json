@@ -23,7 +23,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongoose": "^9.1.4",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "music-metadata": "^11.10.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
