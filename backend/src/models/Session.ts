@@ -2,6 +2,23 @@
 
 import mongoose, { Document, Schema } from 'mongoose';
 
+// Individual practice result within a lesson
+export interface IPracticeResult {
+    practiceIndex: number;
+    scenarioContext: string;
+    transcript: string;
+    videoUrl?: string;
+    completedAt: Date;
+    durationSeconds: number;
+    analysis: {
+        rawScore: number;
+        facial_expression: { score: string; feedback: string };
+        eye_contact: { score: string; feedback: string };
+        body_language: { score: string; feedback: string };
+        tone: { score: string; feedback: string };
+    };
+}
+
 export interface ISession extends Document {
     userId: mongoose.Types.ObjectId;
     scenarioId?: mongoose.Types.ObjectId;
@@ -11,8 +28,13 @@ export interface ISession extends Document {
     durationSeconds: number;
     sessionType: 'practice' | 'retry' | 'assessment';
     difficulty: 'beginner' | 'intermediate' | 'advanced';
+    totalPractices: number;
+    completedPractices: number;
 
-    // Response data
+    // Array of practice results for multi-practice lessons
+    practices: IPracticeResult[];
+
+    // Legacy single response (for backward compatibility)
     response: {
         audioUrl?: string;
         transcript?: string;
@@ -29,7 +51,7 @@ export interface ISession extends Document {
         };
     };
 
-    // Analysis results
+    // Legacy single analysis (for backward compatibility)
     analysis?: {
         rawScore: number;
         facial_expression: { score: string; feedback: string };
@@ -39,16 +61,38 @@ export interface ISession extends Document {
     };
 }
 
+const PracticeResultSchema = new Schema({
+    practiceIndex: { type: Number, required: true },
+    scenarioContext: { type: String },
+    transcript: { type: String },
+    videoUrl: { type: String },
+    completedAt: { type: Date },
+    durationSeconds: { type: Number, default: 0 },
+    analysis: {
+        rawScore: Number,
+        facial_expression: { score: String, feedback: String },
+        eye_contact: { score: String, feedback: String },
+        body_language: { score: String, feedback: String },
+        tone: { score: String, feedback: String }
+    }
+}, { _id: false });
+
 const SessionSchema = new Schema<ISession>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
-    scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: false }, // Made optional
-    lessonId: { type: String, required: false }, // Added for JSON lessons
+    scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: false },
+    lessonId: { type: String, required: false },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
     durationSeconds: { type: Number, default: 0 },
     sessionType: { type: String, enum: ['practice', 'retry', 'assessment'], default: 'practice' },
     difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'], required: true },
+    totalPractices: { type: Number, default: 1 },
+    completedPractices: { type: Number, default: 0 },
 
+    // Array of practice results
+    practices: [PracticeResultSchema],
+
+    // Legacy fields for backward compatibility
     response: {
         audioUrl: String,
         transcript: String,
@@ -66,7 +110,7 @@ const SessionSchema = new Schema<ISession>({
     },
 
     analysis: {
-        rawScore: Number, // Calculated numeric score
+        rawScore: Number,
         facial_expression: { score: String, feedback: String },
         eye_contact: { score: String, feedback: String },
         body_language: { score: String, feedback: String },
