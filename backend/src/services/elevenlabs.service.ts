@@ -31,9 +31,14 @@ export class ElevenLabsService {
         let finalText = text;
 
         if (tonalPrompt) {
-            // Use the pre-existing tonal prompt from the lesson file directly.
-            finalText = `[${tonalPrompt}] ${text}`;
-            console.log(`Using pre-existing tonalPrompt: "${finalText}"`);
+            // Use Gemini to apply the tonal prompt styles to the text without adding spoken tags
+            try {
+                // We pass tonalPrompt as the 'tone' argument to the helper
+                finalText = await GeminiService.generateToneTags(text, tonalPrompt, context);
+                console.log(`Applied tonalPrompt via Gemini: "${text}" -> "${finalText}"`);
+            } catch (error) {
+                console.warn("Failed to apply tonal prompt tags, using original text.", error);
+            }
         } else if (tone) {
             // Fallback: Generate tone tags dynamically using Gemini.
             try {
@@ -49,10 +54,10 @@ export class ElevenLabsService {
                 `${API_URL}/text-to-speech/${voiceId}`,
                 {
                     text: finalText,
-                    model_id: "eleven_multilingual_v2",
+                    model_id: "eleven_v3", // Using Turbo v3
                     voice_settings: {
-                        stability: 0.5,
-                        similarity_boost: 0.75,
+                        stability: 0, // Lower stability (0.3) encourages more emotive/varied performance
+                        similarity_boost: 0.5, // Higher boost (0.75) ensures the voice stays true to the original sample
                     },
                 },
                 {

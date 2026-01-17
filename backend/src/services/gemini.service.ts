@@ -15,18 +15,19 @@ export class GeminiService {
   static async generateToneTags(text: string, tone: string, context: string = ""): Promise<string> {
     try {
       const prompt = `
-        Enhance the following text to clearly convey a "${tone}" tone.
+        Add descriptive tone tags to the beginning of the following text to convey a "${tone}" tone.
         Context: ${context}
         Original Text: "${text}"
 
         Instructions:
-        1. Add a descriptive tag at the beginning, e.g., [Sarcastic], [Warmly], [Angry].
-        2. You may slightly adjust punctuation or add non-verbal cues (like *sigh*) if it significantly helps the TTS engine (ElevenLabs) understand the delivery, but keep the core message the same.
-        3. Return ONLY the final text string.
+        1. Return the text exactly as is, but prepend 2-3 bracketed tags describing the emotional delivery, pacing, and intensity.
+        2. Example: "[Sarcastic] [Slow Paced] [Mocking] Original Text"
+        3. DO NOT change the words, punctuation, or formatting of the original text.
+        4. The output should be: [Tags...] Original Text
       `;
 
       const result = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
+        model: "gemini-2.0-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       });
 
@@ -82,7 +83,7 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-3-pro-preview", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
+            model: "gemini-2.0-flash", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
             contents: [
               {
                 parts: [
@@ -143,43 +144,9 @@ export class GeminiService {
             }
           });
 
-
-
           // result.text should be valid JSON now
           const responseText = result.text || "{}";
-          const parsedResponse = JSON.parse(responseText);
-
-          // Add token usage metadata if available
-          if (result.usageMetadata) {
-            const promptTokens = result.usageMetadata.promptTokenCount || 0;
-            const candidatesTokens = result.usageMetadata.candidatesTokenCount || 0;
-            const totalTokens = result.usageMetadata.totalTokenCount || 0;
-
-            let inputPricePerMillion = 0;
-            let outputPricePerMillion = 0;
-
-            // Pricing Tiers
-            if (promptTokens <= 200000) {
-              inputPricePerMillion = 2.00;
-              outputPricePerMillion = 12.00;
-            } else {
-              inputPricePerMillion = 4.00;
-              outputPricePerMillion = 18.00;
-            }
-
-            const inputCost = (promptTokens / 1000000) * inputPricePerMillion;
-            const outputCost = (candidatesTokens / 1000000) * outputPricePerMillion;
-            const totalCost = inputCost + outputCost;
-
-            parsedResponse.token_usage = {
-              totalTokens: totalTokens,
-              promptTokens: promptTokens,
-              candidatesTokens: candidatesTokens,
-              estimatedCostUSD: parseFloat(totalCost.toFixed(6))
-            };
-          }
-
-          return parsedResponse;
+          return JSON.parse(responseText);
         } catch (jsonError) {
           console.warn(`Analysis failed, retrying... (${retries} left)`, jsonError);
           retries--;

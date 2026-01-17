@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as LearningController from '../controllers/learning.controller';
 import * as AnalysisController from '../controllers/analysis.controller';
 import * as TTSController from '../controllers/tts.controller';
+import * as AudioController from '../controllers/audio.controller';
 import * as sessionController from '../controllers/session.controller';
 import * as scenarioController from '../controllers/scenario.controller';
 import Session from '../models/Session';
@@ -32,8 +33,9 @@ router.post('/lessons/complete', LearningController.completeLesson);
 router.post('/analyze/video', AnalysisController.upload.single('video'), AnalysisController.analyzeVideo);
 
 
-// TTS Routes
+// TTS & Audio Routes
 router.post('/tts/speak', TTSController.speakText);
+router.post('/audio/get-or-create', AudioController.getLessonAudio);
 
 // Session routes
 router.post('/sessions/start', sessionController.startSession);
