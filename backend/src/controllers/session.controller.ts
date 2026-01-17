@@ -67,9 +67,19 @@ export const startSession = async (req: Request, res: Response) => {
 
 // Complete session with analysis
 export const completeSession = async (req: Request, res: Response) => {
+    let filePath = '';
     try {
         const { sessionId } = req.params;
-        const { transcript, facialImageBase64, presageData } = req.body;
+        // transcript/presageData might still be passed in body if needed, but video is primary
+        const { transcript, presageData } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Video file is required'
+            });
+        }
+        filePath = req.file.path;
 
         const session = await Session.findById(sessionId).populate('scenarioId');
         if (!session) {
@@ -79,20 +89,38 @@ export const completeSession = async (req: Request, res: Response) => {
             });
         }
 
-        // Store response data
-        session.response.transcript = transcript;
-        session.response.presageData = presageData;
+        // Store response data (optional if we want to keep these)
+        if (transcript) session.response.transcript = transcript;
+        if (presageData) session.response.presageData = presageData;
+        session.response.audioUrl = req.file.path; // Or store the path temporarily/permanently? 
+        // Note: Local path is ephemeral usually. For a real app, upload to cloud storage. 
+        // For now, we are just analyzing it.
+
+        // Determine tone from scenario
+        // Assuming scenario.category or title represents the target tone/skill
+        const scenario = session.scenarioId as any; // Cast to access populated fields
+        const targetTone = scenario.category || "General Social Cue";
 
         // Run AI analysis
-        const analysis = await GeminiService.analyzeComplete({
-            transcript,
-            facialImageBase64,
-            scenarioContext: (session.scenarioId as any).description,
-            presageData
-        });
+        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone);
 
         // Save analysis
-        session.analysis = analysis;
+        // Map the JSON result to the Mongoose schema structure
+        // The schema expects: rawScore, facial_expression, eye_contact, body_language, tone
+        // The service returns: facial_expression, eye_contact, body_language, tone (each with score/feedback)
+
+        // Calculate a simple raw score based on "thumbs-up" counts or similar if needed.
+        // For now, let's just default rawScore to 0 or calculate it.
+        // Let's assume we just store 0 or implement a helper.
+
+        session.analysis = {
+            rawScore: 0, // Todo: calculate based on thumbs-up/down
+            facial_expression: analysisResult.facial_expression,
+            eye_contact: analysisResult.eye_contact,
+            body_language: analysisResult.body_language,
+            tone: analysisResult.tone
+        };
+
         session.completedAt = new Date();
         session.durationSeconds = Math.floor(
             (session.completedAt.getTime() - session.startedAt.getTime()) / 1000
@@ -114,6 +142,11 @@ export const completeSession = async (req: Request, res: Response) => {
             success: false,
             message: 'Failed to complete session'
         });
+    } finally {
+        // Cleanup file
+        if (filePath && require('fs').existsSync(filePath)) {
+            require('fs').unlinkSync(filePath);
+        }
     }
 };
 

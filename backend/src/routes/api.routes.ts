@@ -24,7 +24,7 @@ router.post('/tts/speak', TTSController.speakText);
 
 // Session routes
 router.post('/sessions/start', sessionController.startSession);
-router.put('/sessions/:sessionId/complete', sessionController.completeSession);
+router.put('/sessions/:sessionId/complete', AnalysisController.upload.single('video'), sessionController.completeSession);
 router.get('/sessions/:sessionId', sessionController.getSession);
 router.get('/sessions/user/:userId', sessionController.getUserSessions);
 

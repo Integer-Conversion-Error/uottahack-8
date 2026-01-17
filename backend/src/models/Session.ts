@@ -30,14 +30,11 @@ export interface ISession extends Document {
 
     // Analysis results
     analysis?: {
-        overallScore: number;
-        scores: {
-            facialExpression: { score: number; issues: string[]; positives: string[] };
-            tone: { score: number; issues: string[]; positives: string[] };
-            content: { score: number; issues: string[]; positives: string[] };
-            authenticity: { score: number; note: string };
-        };
-        coachingTips: string[];
+        rawScore: number;
+        facial_expression: { score: string; feedback: string };
+        eye_contact: { score: string; feedback: string };
+        body_language: { score: string; feedback: string };
+        tone: { score: string; feedback: string };
     };
 }
 
@@ -67,29 +64,11 @@ const SessionSchema = new Schema<ISession>({
     },
 
     analysis: {
-        overallScore: Number,
-        scores: {
-            facialExpression: {
-                score: Number,
-                issues: [String],
-                positives: [String]
-            },
-            tone: {
-                score: Number,
-                issues: [String],
-                positives: [String]
-            },
-            content: {
-                score: Number,
-                issues: [String],
-                positives: [String]
-            },
-            authenticity: {
-                score: Number,
-                note: String
-            }
-        },
-        coachingTips: [String]
+        rawScore: Number, // Calculated numeric score
+        facial_expression: { score: String, feedback: String },
+        eye_contact: { score: String, feedback: String },
+        body_language: { score: String, feedback: String },
+        tone: { score: String, feedback: String }
     }
 }, { timestamps: true });
 
