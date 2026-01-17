@@ -12,7 +12,7 @@ export class GeminiService {
 
 
 
-  static async analyzeVideo(filePath: string, tone: string, promptContext: string = "No specific context provided"): Promise<any> {
+  static async analyzeVideo(filePath: string, tone: string, promptContext: string): Promise<any> {
     try {
       const uploadResult = await ai.files.upload({
         file: filePath,

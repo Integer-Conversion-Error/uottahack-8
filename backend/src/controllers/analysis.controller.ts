@@ -31,10 +31,10 @@ export const analyzeVideo = async (req: Request, res: Response) => {
         }
 
         const { tone, context } = req.body;
-        if (!tone) {
+        if (!tone || !context) {
             // cleanup
             fs.unlinkSync(req.file.path);
-            return res.status(400).json({ message: "Tone/Context is required" });
+            return res.status(400).json({ message: "Tone and Context are required" });
         }
 
         const analysis = await GeminiService.analyzeVideo(req.file.path, tone, context);
