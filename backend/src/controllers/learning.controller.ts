@@ -21,31 +21,7 @@ export const getLessonsByModule = async (req: Request, res: Response) => {
     }
 };
 
-// Auto-generate a lesson if it doesn't exist or just for demo
-export const generateLesson = async (req: Request, res: Response) => {
-    const { topic, difficulty, moduleId } = req.body;
-    try {
-        const content = await GeminiService.generateLessonJSON(topic, difficulty);
 
-        // Save as a new lesson
-        const newLesson = new Lesson({
-            title: content.title || topic,
-            type: 'static_learning',
-            content: content,
-            moduleId: moduleId, // Ensure this ID exists
-            xpReward: 20
-        });
-
-        await newLesson.save();
-
-        // Add to module
-        await Module.findByIdAndUpdate(moduleId, { $push: { lessons: newLesson._id } });
-
-        res.json(newLesson);
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to generate lesson' });
-    }
-};
 
 export const completeLesson = async (req: Request, res: Response) => {
     const { userId, lessonId } = req.body; // Since no auth, passing userId in body
