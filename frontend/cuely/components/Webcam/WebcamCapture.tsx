@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRef, useState, useCallback } from 'react';
-import Webcam from 'react-webcam';
+import { useRef, useState, useCallback } from "react";
+import Webcam from "react-webcam";
 
 interface WebcamCaptureProps {
   onCapture?: (imageSrc: string) => void;
@@ -16,7 +16,7 @@ export default function WebcamCapture({
   onStartRecording,
   onStopRecording,
   isRecording = false,
-  showControls = true
+  showControls = true,
 }: WebcamCaptureProps) {
   const webcamRef = useRef<Webcam>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -27,7 +27,7 @@ export default function WebcamCapture({
   const videoConstraints = {
     width: 1280,
     height: 720,
-    facingMode: "user"
+    facingMode: "user",
   };
 
   // Handle webcam user media
@@ -37,8 +37,10 @@ export default function WebcamCapture({
 
   const handleUserMediaError = () => {
     setHasPermission(false);
-    console.error('Failed to access webcam');
+    console.error("Failed to access webcam");
   };
+
+  const chunksRef = useRef<Blob[]>([]);
 
   const chunksRef = useRef<Blob[]>([]);
 
@@ -55,16 +57,16 @@ export default function WebcamCapture({
   // Start video recording
   const startRecording = useCallback(() => {
     if (webcamRef.current && webcamRef.current.stream) {
-      console.log('Starting recording...');
+      console.log("Starting recording...");
       const stream = webcamRef.current.stream;
-      
+
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm'
+        mimeType: "video/webm",
       });
 
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = []; // Reset chunks
-      setRecordedChunks([]); 
+      setRecordedChunks([]);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -81,14 +83,19 @@ export default function WebcamCapture({
   // Stop video recording
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current) {
-      console.log('Stopping recording...');
+      console.log("Stopping recording...");
       mediaRecorderRef.current.stop();
-      
+
       mediaRecorderRef.current.onstop = () => {
-        const totalSize = chunksRef.current.reduce((acc, chunk) => acc + chunk.size, 0);
-        console.log(`Recording stopped. Total size: ${totalSize} bytes. Chunks: ${chunksRef.current.length}`);
-        
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const totalSize = chunksRef.current.reduce(
+          (acc, chunk) => acc + chunk.size,
+          0,
+        );
+        console.log(
+          `Recording stopped. Total size: ${totalSize} bytes. Chunks: ${chunksRef.current.length}`,
+        );
+
+        const blob = new Blob(chunksRef.current, { type: "video/webm" });
         chunksRef.current = []; // Clear after use
         if (onStopRecording) onStopRecording(blob);
       };
@@ -141,7 +148,7 @@ export default function WebcamCapture({
           >
             📸 Capture Photo
           </button>
-          
+
           {!isRecording ? (
             <button
               onClick={startRecording}

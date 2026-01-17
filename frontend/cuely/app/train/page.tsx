@@ -89,12 +89,12 @@ export default function TrainingPage() {
       formData.append('video', videoBlob, 'session-recording.webm');
       formData.append('transcript', 'User response transcript here'); // Placeholder for now
       // Presage data would go here if available
-      formData.append('presageData', JSON.stringify({
-         baselineHeartRate: 70,
-         avgHeartRateDuringResponse: 75,
-         stressLevel: 'low',
-         engagementScore: 80
-      }));
+      // formData.append('presageData', JSON.stringify({
+      //    baselineHeartRate: 70,
+      //    avgHeartRateDuringResponse: 75,
+      //    stressLevel: 'low',
+      //    engagementScore: 80
+      // }));
 
       const response = await fetch(`http://localhost:4000/api/sessions/${sessionId}/complete`, {
         method: 'PUT',
