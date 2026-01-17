@@ -12,11 +12,69 @@ if (!fs.existsSync(AUDIO_DIR)) {
 
 export const getLessonAudio = async (req: Request, res: Response) => {
     try {
-        const { lessonId, pageOrder, text, tonalPrompt, voiceId, tone } = req.body;
+        const { lessonId, pageOrder, voiceId, tone } = req.body;
+        let { text, tonalPrompt } = req.body;
 
-        if (!lessonId || pageOrder === undefined || !text) {
-            res.status(400).json({ message: 'Missing required fields: lessonId, pageOrder, text' });
+        if (!lessonId || pageOrder === undefined) {
+            res.status(400).json({ message: 'Missing required fields: lessonId, pageOrder' });
             return;
+        }
+
+        // Lookup lesson data from file if text is missing
+        if (!text) {
+            try {
+                // Adjust path based on deployment/dev environment.
+                // Assuming standard repo structure: backend/src/controllers -> frontend/cuely/data
+                const dataDir = path.join(__dirname, '../../../frontend/cuely/data');
+
+                if (fs.existsSync(dataDir)) {
+                    const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.json'));
+
+                    let lessonData = null;
+                    for (const file of files) {
+                        try {
+                            const content = JSON.parse(fs.readFileSync(path.join(dataDir, file), 'utf-8'));
+                            if (content.lessonId === lessonId) {
+                                lessonData = content;
+                                break;
+                            }
+                        } catch (e) {
+                            console.warn(`Failed to parse lesson file ${file}`, e);
+                        }
+                    }
+
+                    if (!lessonData) {
+                        // Fallback: If not found in file (maybe implied lessonId mismatch?), error out
+                        // unless we strictly require text.
+                        // For now, if text is missing AND we can't find the lesson, it's an error.
+                        res.status(404).json({ message: 'Lesson data not found. Please provide text explicitly.' });
+                        return;
+                    }
+
+                    const page = lessonData.pages ? lessonData.pages.find((p: any) => p.pageOrder === pageOrder) : null;
+                    if (!page) {
+                        res.status(404).json({ message: 'Page not found in lesson' });
+                        return;
+                    }
+
+                    text = page.transcript;
+                    tonalPrompt = page.audioSample?.tonalPrompt;
+
+                    if (!text) {
+                        res.status(400).json({ message: 'Page has no transcript to speak' });
+                        return;
+                    }
+                } else {
+                    console.warn(`Data directory not found at ${dataDir}`);
+                    res.status(500).json({ message: 'Server configuration error: Data directory missing' });
+                    return;
+                }
+
+            } catch (err) {
+                console.error("Error looking up lesson data:", err);
+                res.status(500).json({ message: 'Failed to retrieve lesson data from backend' });
+                return;
+            }
         }
 
         const fileName = `${lessonId}_${pageOrder}.mp3`;
