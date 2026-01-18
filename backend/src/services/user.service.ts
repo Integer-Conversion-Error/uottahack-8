@@ -22,10 +22,10 @@ export class UserService {
     static async updateUserStats(
         userId: string,
         analysisScores: {
-            facial_expression: string;
-            eye_contact: string;
-            body_language: string;
-            tone: string;
+            facial_expression: number;
+            eye_contact: number;
+            body_language: number;
+            tone: number;
         }
     ): Promise<IUser | null> {
         try {
@@ -35,21 +35,21 @@ export class UserService {
                 return null;
             }
 
-            // Convert thumbs scores to numeric values
-            const facialScore = this.scoreToNumeric(analysisScores.facial_expression);
-            const eyeScore = this.scoreToNumeric(analysisScores.eye_contact);
-            const bodyScore = this.scoreToNumeric(analysisScores.body_language);
-            const toneScore = this.scoreToNumeric(analysisScores.tone);
+            // Get current count before incrementing (for the average calculation)
+            const n = user.stats.scenariosCompleted || 0;
 
-            // Update scenarios completed
-            user.stats.scenariosCompleted = (user.stats.scenariosCompleted || 0) + 1;
+            // Formula: NewAvg = ((OldAvg * n) + NewScore) / (n + 1)
+            const updateAvg = (oldAvg: number, newScore: number) => {
+                return ((oldAvg || 0) * n + newScore) / (n + 1);
+            };
 
-            // Update skill scores with weighted average (20% new, 80% old)
-            const weight = 0.2;
-            user.skills.facialExpression = (user.skills.facialExpression || 0) * (1 - weight) + facialScore * weight;
-            user.skills.toneControl = (user.skills.toneControl || 0) * (1 - weight) + toneScore * weight;
-            user.skills.eyeContact = (user.skills.eyeContact || 0) * (1 - weight) + eyeScore * weight;
-            user.skills.bodyLanguage = (user.skills.bodyLanguage || 0) * (1 - weight) + bodyScore * weight;
+            user.skills.facialExpression = updateAvg(user.skills.facialExpression, analysisScores.facial_expression);
+            user.skills.toneControl = updateAvg(user.skills.toneControl, analysisScores.tone);
+            user.skills.eyeContact = updateAvg(user.skills.eyeContact, analysisScores.eye_contact);
+            user.skills.bodyLanguage = updateAvg(user.skills.bodyLanguage, analysisScores.body_language);
+
+            // Update scenarios completed count
+            user.stats.scenariosCompleted = n + 1;
 
             // Calculate overall empathy score (average of all skills)
             user.stats.overallEmpathyScore = (

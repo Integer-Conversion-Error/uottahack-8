@@ -69,6 +69,33 @@ export class GeminiService {
     }
   }
 
+  /**
+   * Strictly enforces thumbs-rating based on numerical score and difficulty.
+   */
+  private static getStrictRating(score: number, difficulty: string): 'thumbs-up' | 'thumbs-sideways' | 'thumbs-down' {
+    const diff = difficulty.toLowerCase();
+
+    // Easy / Beginner
+    if (diff === 'beginner' || diff === 'easy') {
+      if (score > 50) return 'thumbs-up';
+      if (score >= 25) return 'thumbs-sideways';
+      return 'thumbs-down';
+    }
+
+    // Intermediate
+    if (diff === 'intermediate') {
+      if (score > 70) return 'thumbs-up';
+      if (score >= 40) return 'thumbs-sideways';
+      return 'thumbs-down';
+    }
+
+    // Hard / Advanced
+    // 90 and above is thumbs up. 50-90 is sideways, below 50 is down.
+    if (score >= 90) return 'thumbs-up';
+    if (score >= 50) return 'thumbs-sideways';
+    return 'thumbs-down';
+  }
+
   static async analyzeVideo(filePath: string, tone: string, promptContext: string, difficulty: string = 'beginner', presageData?: any): Promise<any> {
     try {
       // Read video file as Base64
@@ -140,29 +167,25 @@ export class GeminiService {
 
       prompt += `
           
-          CRITICAL: Grade the user on these 5 areas according to the "${difficulty}" persona defined above:
+          CRITICAL: Grade the user on these 5 areas according to the "${difficulty}" persona defined above.
+          
+          For EACH category, you MUST provide:
+          1. A "numerical_score" (0-100) representing their performance quality.
+          2. Specific feedback (40-50 words).
 
-          1. FACIAL EXPRESSION
-          2. EYE CONTACT
-          3. BODY LANGUAGE
-          4. VOCAL TONE
-          5. CONTENT
-
-          STRICTNESS GUIDE for "${difficulty}":
-          - "thumbs-up": ${difficulty === 'beginner' ? 'Good effort, general vibe match.' : difficulty === 'intermediate' ? 'Competent execution.' : 'Flawless perfection.'}
-          - "thumbs-sideways": ${difficulty === 'beginner' ? 'Confusing or low effort.' : difficulty === 'intermediate' ? 'Noticeable flaws.' : 'Mediocre or average.'}
-          - "thumbs-down": ${difficulty === 'beginner' ? 'Completely wrong.' : difficulty === 'intermediate' ? 'Clear failure.' : 'Any imperfection.'}
-
-          For EACH category, provide 40-50 words of specific feedback matching your persona (Supportive vs Professional vs Harsh).
+          STRICTNESS GUIDE for Numerical Scores (0-100):
+          - Beginner/Easy: >50 is Good. <25 is Fail.
+          - Intermediate: >70 is Good. <40 is Fail.
+          - Advanced/Hard: >=90 is Good. <50 is Fail.
 
           Return the result ONLY as a valid JSON object with the following schema:
           {
-            "transcript": "string (the user's exact spoken words)",
-            "facial_expression": { "score": "string", "feedback": "string" },
-            "eye_contact": { "score": "string", "feedback": "string" },
-            "body_language": { "score": "string", "feedback": "string" },
-            "tone": { "score": "string", "feedback": "string" },
-            "content": { "score": "string", "feedback": "string" }
+            "transcript": "string",
+            "facial_expression": { "numerical_score": number, "feedback": "string" },
+            "eye_contact": { "numerical_score": number, "feedback": "string" },
+            "body_language": { "numerical_score": number, "feedback": "string" },
+            "tone": { "numerical_score": number, "feedback": "string" },
+            "content": { "numerical_score": number, "feedback": "string" }
           }
         `;
 
@@ -201,42 +224,42 @@ export class GeminiService {
                   facial_expression: {
                     type: "object",
                     properties: {
-                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      numerical_score: { type: "number" },
                       feedback: { type: "string" }
                     },
-                    required: ["score", "feedback"]
+                    required: ["numerical_score", "feedback"]
                   },
                   eye_contact: {
                     type: "object",
                     properties: {
-                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      numerical_score: { type: "number" },
                       feedback: { type: "string" }
                     },
-                    required: ["score", "feedback"]
+                    required: ["numerical_score", "feedback"]
                   },
                   body_language: {
                     type: "object",
                     properties: {
-                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      numerical_score: { type: "number" },
                       feedback: { type: "string" }
                     },
-                    required: ["score", "feedback"]
+                    required: ["numerical_score", "feedback"]
                   },
                   tone: {
                     type: "object",
                     properties: {
-                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      numerical_score: { type: "number" },
                       feedback: { type: "string" }
                     },
-                    required: ["score", "feedback"]
+                    required: ["numerical_score", "feedback"]
                   },
                   content: {
                     type: "object",
                     properties: {
-                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      numerical_score: { type: "number" },
                       feedback: { type: "string" }
                     },
-                    required: ["score", "feedback"]
+                    required: ["numerical_score", "feedback"]
                   }
                 },
                 required: ["transcript", "facial_expression", "eye_contact", "body_language", "tone", "content"]
@@ -247,6 +270,19 @@ export class GeminiService {
           // result.text should be valid JSON now
           const responseText = result.text || "{}";
           const parsed = JSON.parse(responseText);
+
+          // Post-process: Calculate strict thumbs rating
+          const categories = ['facial_expression', 'eye_contact', 'body_language', 'tone', 'content'];
+          for (const cat of categories) {
+            if (parsed[cat] && typeof parsed[cat].numerical_score === 'number') {
+              parsed[cat].score = GeminiService.getStrictRating(parsed[cat].numerical_score, difficulty);
+            } else if (parsed[cat]) {
+              // Fallback if AI hallucinates strictly
+              parsed[cat].score = 'thumbs-sideways';
+              parsed[cat].numerical_score = 50;
+            }
+          }
+
           console.log('Gemini analysis result:', JSON.stringify(parsed, null, 2));
           return parsed;
         } catch (jsonError) {

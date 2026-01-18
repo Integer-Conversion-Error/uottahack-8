@@ -144,10 +144,10 @@ export const addPractice = async (req: Request, res: Response) => {
         let newlyUnlocked: string[] = [];
         try {
             const user = await UserService.updateUserStats(session.userId.toString(), {
-                facial_expression: analysisResult.facial_expression?.score || 'thumbs-down',
-                eye_contact: analysisResult.eye_contact?.score || 'thumbs-down',
-                body_language: analysisResult.body_language?.score || 'thumbs-down',
-                tone: analysisResult.tone?.score || 'thumbs-down'
+                facial_expression: analysisResult.facial_expression?.numerical_score || 0,
+                eye_contact: analysisResult.eye_contact?.numerical_score || 0,
+                body_language: analysisResult.body_language?.numerical_score || 0,
+                tone: analysisResult.tone?.numerical_score || 0
             });
 
             if (user) {
@@ -254,10 +254,10 @@ export const completeSession = async (req: Request, res: Response) => {
         let newlyUnlocked: string[] = [];
         try {
             const user = await UserService.updateUserStats(session.userId.toString(), {
-                facial_expression: analysisResult.facial_expression?.score || 'thumbs-down',
-                eye_contact: analysisResult.eye_contact?.score || 'thumbs-down',
-                body_language: analysisResult.body_language?.score || 'thumbs-down',
-                tone: analysisResult.tone?.score || 'thumbs-down'
+                facial_expression: analysisResult.facial_expression?.numerical_score || 0,
+                eye_contact: analysisResult.eye_contact?.numerical_score || 0,
+                body_language: analysisResult.body_language?.numerical_score || 0,
+                tone: analysisResult.tone?.numerical_score || 0
             });
 
             if (user) {
