@@ -51,6 +51,12 @@ export class ElevenLabsService {
      * @returns The transcribed text.
      */
     static async transcribeAudio(filePath: string): Promise<string> {
+        // Feature flag: Skip transcription if disabled (e.g. on production to save costs/avoid quota)
+        if (process.env.ENABLE_TRANSCRIPTION === 'false') {
+            console.log('Transcription disabled via ENABLE_TRANSCRIPTION=false. Returning placeholder.');
+            return "[Transcription disabled on this environment]";
+        }
+
         if (!ELEVENLABS_API_KEY) {
             throw new Error("ElevenLabs API Key is missing");
         }
