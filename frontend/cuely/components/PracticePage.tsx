@@ -99,169 +99,12 @@ export default function PracticePage({
         duration: 0.6
       }, "-=0.3");
 
-    // Animate listen phase content
-    if (practicePhase === 'listen' && listenPhaseRef.current) {
-      const listenElements = listenPhaseRef.current.querySelectorAll('div, h3, p, button');
-      gsap.fromTo(listenElements,
-        {
-          opacity: 0,
-          y: 20
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          delay: 0.5
-        }
-      );
-    }
-
     return () => {
       tl.kill();
     };
   }, []);
 
-  // Phase transition animation
-  useEffect(() => {
-    if (!phaseContentRef.current) return;
-
-    if (practicePhase === 'listen' && listenPhaseRef.current) {
-      // Animate listen phase in
-      const listenElements = listenPhaseRef.current.querySelectorAll('div, h3, p, button');
-      gsap.fromTo(listenElements,
-        {
-          opacity: 0,
-          x: 50,
-          scale: 0.95
-        },
-        {
-          opacity: 1,
-          x: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.08,
-          ease: "back.out(1.2)"
-        }
-      );
-    } else if (practicePhase === 'respond' && respondPhaseRef.current) {
-      // Animate respond phase in
-      const respondElements = respondPhaseRef.current.querySelectorAll('div, h3, p, button');
-      gsap.fromTo(respondElements,
-        {
-          opacity: 0,
-          x: 50,
-          scale: 0.95
-        },
-        {
-          opacity: 1,
-          x: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.05,
-          ease: "back.out(1.2)"
-        }
-      );
-    }
-  }, [practicePhase]);
-
-  // Animation for recorded blob state
-  useEffect(() => {
-    if (capturedBlob && respondPhaseRef.current) {
-      const successMessage = respondPhaseRef.current.querySelector('.success-message');
-      if (successMessage) {
-        gsap.fromTo(successMessage,
-          {
-            opacity: 0,
-            scale: 0.8,
-            y: 20
-          },
-          {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            duration: 0.5,
-            ease: "back.out(1.5)"
-          }
-        );
-      }
-    }
-  }, [capturedBlob]);
-
-  // Audio button animation
-  useEffect(() => {
-    const audioButton = document.querySelector('.audio-button');
-    if (audioButton) {
-      audioButton.addEventListener('mouseenter', () => {
-        gsap.to(audioButton, {
-          scale: 1.1,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      });
-
-      audioButton.addEventListener('mouseleave', () => {
-        gsap.to(audioButton, {
-          scale: 1,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      });
-
-      // Pulsing animation when audio is playing
-      if (isPlaying) {
-        gsap.to(audioButton, {
-          scale: 1.15,
-          duration: 0.5,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut"
-        });
-      } else {
-        gsap.killTweensOf(audioButton);
-      }
-    }
-
-    return () => {
-      if (audioButton) {
-        audioButton.removeEventListener('mouseenter', () => {});
-        audioButton.removeEventListener('mouseleave', () => {});
-      }
-    };
-  }, [isPlaying]);
-
-  // Submit button animation
-  useEffect(() => {
-    const submitButton = document.querySelector('.submit-button');
-    if (submitButton) {
-      submitButton.addEventListener('mouseenter', () => {
-        if (capturedBlob && !isSubmitting) {
-          gsap.to(submitButton, {
-            scale: 1.05,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        }
-      });
-
-      submitButton.addEventListener('mouseleave', () => {
-        if (capturedBlob && !isSubmitting) {
-          gsap.to(submitButton, {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        }
-      });
-    }
-
-    return () => {
-      if (submitButton) {
-        submitButton.removeEventListener('mouseenter', () => {});
-        submitButton.removeEventListener('mouseleave', () => {});
-      }
-    };
-  }, [capturedBlob, isSubmitting]);
+ 
 
   return (
     <div 
@@ -271,7 +114,7 @@ export default function PracticePage({
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-8 pb-8 overflow-hidden">
         <div className="max-w-6xl w-full h-full flex flex-col">
-          <div className="pt-4 grid grid-cols-2 gap-8 h-full overflow-hidden">
+          <div className="pt-4 grid grid-cols-2 gap-8 h-full ">
             {/* Left Column - Scenario Context */}
             <div 
               ref={leftColumnRef}
@@ -349,12 +192,12 @@ export default function PracticePage({
                         }
                         setIsPlaying(!isPlaying);
                       }}
-                      className="audio-button w-16 h-16 bg-[#5E7381] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#4a5c6a] transition-all transform-gpu will-change-transform"
+                      className="audio-button w-16 h-16 bg-slate-500 text-white hover:bg-slate-600 rounded-full flex items-center justify-center shadow-lg transition-all transform-gpu will-change-transform"
                     >
                       {isPlaying ? (
-                        <Pause className="w-8 h-8 fill-current" />
+                        <Pause size={32} className="w-8 h-8 fill-current text-white" />
                       ) : (
-                        <Play className="w-8 h-8 fill-current ml-1" />
+                        <Play className="w-8 h-8 fill-current ml-1 text-white rounded-full" />
                       )}
                     </button>
                     <p className="mt-3 text-sm text-[#5E7381] font-medium opacity-80">
