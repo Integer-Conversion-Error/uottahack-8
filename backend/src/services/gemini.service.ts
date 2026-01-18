@@ -229,7 +229,9 @@ export class GeminiService {
 
           // result.text should be valid JSON now
           const responseText = result.text || "{}";
-          return JSON.parse(responseText);
+          const parsed = JSON.parse(responseText);
+          console.log('Gemini analysis result:', JSON.stringify(parsed, null, 2));
+          return parsed;
         } catch (jsonError) {
           console.warn(`Analysis failed, retrying... (${retries} left)`, jsonError);
           retries--;
