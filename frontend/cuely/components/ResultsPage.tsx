@@ -166,26 +166,6 @@ export default function ResultsPage({
       duration: 0.6
     }, "-=0.2");
 
-    // Add hover effects to cards
-    cardsRef.current.forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        gsap.to(card, {
-          y: -5,
-          scale: 1.02,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      });
-
-      card.addEventListener('mouseleave', () => {
-        gsap.to(card, {
-          y: 0,
-          scale: 1,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      });
-    });
 
     // Cleanup
     return () => {
@@ -202,7 +182,7 @@ export default function ResultsPage({
   };
 
   return (
-    <div ref={containerRef} className="h-screen flex flex-col overflow-hidden bg-[#E1D3BE] mt-5">
+    <div ref={containerRef} className="h-screen flex flex-col  bg-[#E1D3BE] mt-5">
       
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-8 pb-8 overflow-hidden">
@@ -216,7 +196,7 @@ export default function ResultsPage({
           </h1>
 
           {/* Two-column layout for feedback cards and AI notes */}
-          <div className="flex-1 flex gap-6 overflow-hidden">
+          <div className="flex-1 flex gap-6">
             {/* Left column - Feedback Cards */}
             <div className="flex-1  pr-4">
               <div className="grid grid-cols-2 gap-6 pb-6">
@@ -323,7 +303,7 @@ export default function ResultsPage({
           >
             <button
               onClick={onTryAgain}
-              className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-semibold hover:bg-gray-100 transition-colors transform-gpu will-change-transform border border-[#5E7381] shadow-sm"
+              className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-semibold hover:bg-gray-100 transition-colors transform-gpu will-change-transform shadow-sm"
             >
               ← Try Again
             </button>
