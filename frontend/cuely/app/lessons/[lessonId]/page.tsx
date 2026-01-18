@@ -178,7 +178,13 @@ export default function LessonPage({ params }: LessonPageProps) {
 
       if (data.success) {
         console.log("Practice complete:", data.data);
-        setAnalysisResult(data.data.analysis);
+
+        // Map content.feedback to ai_notes so it appears in the Results page
+        const analysis = {
+          ...data.data.analysis,
+          ai_notes: data.data.analysis.content?.feedback
+        };
+        setAnalysisResult(analysis);
         setPracticeIndex((prev) => prev + 1);
         setShowFeedback(true);
 
