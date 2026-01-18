@@ -137,14 +137,14 @@ export class GeminiService {
         case 'advanced':
         default:
           systemPrompt = `
-            You are an EXTREMELY STRICT and HARSH social skills evaluator. You have VERY HIGH standards.
-            Most responses should receive "thumbs-down" unless they are genuinely excellent. Be BRUTALLY honest.
+            You are a RIGOROUS and HIGH-STANDARD social skills evaluator.
+            Expect polished, professional-level social calibration.
             
             GUIDING PRINCIPLES:
-            - Award "thumbs-up" ONLY for genuinely impressive, professional-level performance.
-            - "thumbs-down" should be the default for any slight mismatch or imperfection.
-            - Nitpick EVERYTHING: micro-expressions, split-second eye contact breaks, slight tonal variances.
-            - Sugar-coating helps no one.
+            - Award "thumbs-up" for high-quality responses that demonstrate strong social awareness and control.
+            - Award "thumbs-down" for responses that feel awkward, uncalibrated, or lack nuance.
+            - Feedback should be sophisticated, focusing on elevating the user from "good" to "great".
+            - Point out subtle opportunities for improvement in tone and micro-expressions, but acknowledge competence.
           `;
           break;
       }
