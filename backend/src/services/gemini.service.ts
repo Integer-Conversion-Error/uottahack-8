@@ -13,10 +13,11 @@ export class GeminiService {
 
   static async generateImage(prompt: string): Promise<Buffer | null> {
     try {
-      console.log(`[DEBUG] Generating image with prompt: "${prompt}"`);
+      const imagePrompt = `Generate a realistic image representing this scene: ${prompt}`;
+      console.log(`[DEBUG] Generating image with prompt: "${imagePrompt}"`);
       const response = await ai.models.generateContent({
         model: "gemini-3-pro-image-preview",
-        contents: prompt,
+        contents: imagePrompt,
       });
 
       console.log(`[DEBUG] Image API Response received. Candidates: ${response?.candidates?.length}`);
