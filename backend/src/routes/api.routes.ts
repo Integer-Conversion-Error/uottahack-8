@@ -6,8 +6,8 @@ import * as sessionController from '../controllers/session.controller';
 import * as lessonController from '../controllers/lesson.controller';
 import Session from '../models/Session';
 import { validationMiddleware } from '../middleware/validation.middleware';
-import { CreateSessionDTO } from '../dtos/session.dto';
-import { GetLessonAudioDTO } from '../dtos/generation.dto';
+import { CreateSessionDTO, SubmitPracticeResultDTO, AnalyzeVideoDTO } from '../dtos/session.dto';
+import { GetLessonAudioDTO, GenerateAudioDTO } from '../dtos/generation.dto';
 
 const router = Router();
 
@@ -30,17 +30,17 @@ router.get('/lessons', lessonController.getAllLessons);
 router.get('/lessons/:lessonId', lessonController.getLessonById);
 
 // Analysis Routes - Image upload handled by multer middleware in controller export, but applied here
-router.post('/analyze/video', AnalysisController.upload.single('video'), AnalysisController.analyzeVideo);
+router.post('/analyze/video', AnalysisController.upload.single('video'), validationMiddleware(AnalyzeVideoDTO), AnalysisController.analyzeVideo);
 
 
 // TTS & Audio Routes
-router.post('/tts/speak', TTSController.speakText);
+router.post('/tts/speak', validationMiddleware(GenerateAudioDTO), TTSController.speakText);
 router.post('/audio/get-or-create', validationMiddleware(GetLessonAudioDTO), AudioController.getLessonAudio);
 
 // Session routes
 router.post('/sessions/start', validationMiddleware(CreateSessionDTO), sessionController.startSession);
-router.put('/sessions/:sessionId/complete', AnalysisController.upload.single('video'), sessionController.completeSession);
-router.post('/sessions/:sessionId/practice', AnalysisController.upload.single('video'), sessionController.addPractice);
+router.put('/sessions/:sessionId/complete', AnalysisController.upload.single('video'), validationMiddleware(SubmitPracticeResultDTO), sessionController.completeSession);
+router.post('/sessions/:sessionId/practice', AnalysisController.upload.single('video'), validationMiddleware(SubmitPracticeResultDTO), sessionController.addPractice);
 router.get('/sessions/:sessionId', sessionController.getSession);
 router.get('/sessions/user/:userId', sessionController.getUserSessions);
 
