@@ -141,9 +141,6 @@ export default function DashboardPage() {
                     <p className="text-[#5E7381]/70">Track your progress and improve your social confidence.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="p-2.5 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors">
-                        <Search size={20} />
-                    </button>
                     <button className="flex items-center gap-2 px-6 py-2.5 bg-[#5E7381] text-white rounded-xl font-bold hover:bg-[#4a5c6a] transition-all shadow-lg shadow-black/20">
                         Start Practice
                     </button>
