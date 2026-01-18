@@ -143,11 +143,16 @@ export const addPractice = async (req: Request, res: Response) => {
         // Update User Stats & Check Achievements
         let newlyUnlocked: string[] = [];
         try {
+            // Apply difficulty multipliers to User Stats only
+            // Note: addPractice request body doesn't strictly require difficulty, but frontend sends it. 
+            // We need to extract it from req.body or currentPage.
+            const sessionDifficulty = req.body.difficulty || 'beginner';
+
             const user = await UserService.updateUserStats(session.userId.toString(), {
-                facial_expression: analysisResult.facial_expression?.numerical_score || 0,
-                eye_contact: analysisResult.eye_contact?.numerical_score || 0,
-                body_language: analysisResult.body_language?.numerical_score || 0,
-                tone: analysisResult.tone?.numerical_score || 0
+                facial_expression: getWeightedScore(analysisResult.facial_expression?.numerical_score || 0, sessionDifficulty),
+                eye_contact: getWeightedScore(analysisResult.eye_contact?.numerical_score || 0, sessionDifficulty),
+                body_language: getWeightedScore(analysisResult.body_language?.numerical_score || 0, sessionDifficulty),
+                tone: getWeightedScore(analysisResult.tone?.numerical_score || 0, sessionDifficulty)
             });
 
             if (user) {
@@ -187,7 +192,23 @@ export const addPractice = async (req: Request, res: Response) => {
     }
 };
 
-// Complete session (legacy)
+
+// Helper to apply difficulty multipliers
+const getWeightedScore = (rawScore: number, difficulty: string = 'beginner'): number => {
+    let score = rawScore;
+    const diff = difficulty.toLowerCase();
+
+    if (diff === 'advanced' || diff === 'hard') {
+        score = rawScore * 1.5;
+    } else if (diff === 'beginner' || diff === 'easy') {
+        score = rawScore / 1.5;
+    }
+    // Intermediate is 1.0x (no change)
+
+    // Cap at 100 to maintain percentage semantics
+    return Math.min(Math.round(score), 100);
+};
+
 export const completeSession = async (req: Request, res: Response) => {
     let filePath = '';
     try {
@@ -253,11 +274,13 @@ export const completeSession = async (req: Request, res: Response) => {
 
         let newlyUnlocked: string[] = [];
         try {
+            // Apply difficulty multipliers to User Stats only
+            const sessionDifficulty = difficulty || 'beginner';
             const user = await UserService.updateUserStats(session.userId.toString(), {
-                facial_expression: analysisResult.facial_expression?.numerical_score || 0,
-                eye_contact: analysisResult.eye_contact?.numerical_score || 0,
-                body_language: analysisResult.body_language?.numerical_score || 0,
-                tone: analysisResult.tone?.numerical_score || 0
+                facial_expression: getWeightedScore(analysisResult.facial_expression?.numerical_score || 0, sessionDifficulty),
+                eye_contact: getWeightedScore(analysisResult.eye_contact?.numerical_score || 0, sessionDifficulty),
+                body_language: getWeightedScore(analysisResult.body_language?.numerical_score || 0, sessionDifficulty),
+                tone: getWeightedScore(analysisResult.tone?.numerical_score || 0, sessionDifficulty)
             });
 
             if (user) {
