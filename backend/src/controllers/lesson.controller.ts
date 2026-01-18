@@ -129,13 +129,16 @@ export const generateLessonOrModules = async (req: Request, res: Response) => {
                 });
             }
 
-            // Assign lessonNumber (auto-increment)
+            // Assign lessonNumber (auto-increment) and difficulty
             const maxLesson = await Lesson.findOne().sort({ lessonNumber: -1 });
             lessonData.lessonNumber = (maxLesson?.lessonNumber || 0) + 1;
+            lessonData.difficulty = difficulty.toLowerCase();
 
             // Create and save
             const newLesson = new Lesson(lessonData);
             await newLesson.save();
+
+            console.log(`Saved new lesson to database: ${newLesson.lessonId}`);
 
             return res.json({
                 success: true,
