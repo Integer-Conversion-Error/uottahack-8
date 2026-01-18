@@ -2,25 +2,48 @@
 
 import { Request, Response } from 'express';
 import Session from '../models/Session';
+import User from '../models/User';
 import { GeminiService } from '../services/gemini.service';
 import fs from 'fs';
+import { CreateSessionDTO } from '../dtos/session.dto';
 
-// Start a new training session (1 session per lesson)
+// Start a new training session
 export const startSession = async (req: Request, res: Response) => {
     try {
-        const { userId, lessonId, difficulty, title, totalPractices } = req.body;
+        let { userId, lessonId, scenarioId, difficulty, sessionType } = req.body as CreateSessionDTO;
+        const { title, totalPractices } = req.body;
 
-        if (!lessonId) {
-            return res.status(400).json({ success: false, message: 'lessonId is required' });
+        // SINGLE USER MODE: If no userId, use the default user
+        if (!userId) {
+            let defaultUser = await User.findOne({ email: 'user@example.com' });
+            if (!defaultUser) {
+                defaultUser = await User.create({
+                    name: 'Demo User',
+                    email: 'user@example.com',
+                    preferences: {
+                        difficultyLevel: 'beginner',
+                        voiceFeedback: true,
+                        liveTranscription: true
+                    }
+                });
+                console.log('Created default user for single-user mode');
+            }
+            userId = defaultUser._id.toString();
+        }
+
+        // Require either lessonId OR scenarioId
+        if (!lessonId && !scenarioId) {
+            return res.status(400).json({ success: false, message: 'Either lessonId or scenarioId is required' });
         }
 
         let sessionData: any = {
             userId,
             lessonId,
+            scenarioId,
             difficulty: difficulty || 'beginner',
             totalPractices: totalPractices || 1,
             startedAt: new Date(),
-            sessionType: 'practice',
+            sessionType: sessionType || 'practice',
             practices: [],
             completedPractices: 0,
             response: { webcamSnapshots: [] }

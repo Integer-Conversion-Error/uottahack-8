@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { ElevenLabsService } from '../services/elevenlabs.service';
+import { GetLessonAudioDTO } from '../dtos/generation.dto';
 
 const AUDIO_DIR = path.join(__dirname, '../../public/audio');
 
@@ -12,8 +13,8 @@ if (!fs.existsSync(AUDIO_DIR)) {
 
 export const getLessonAudio = async (req: Request, res: Response) => {
     try {
-        const { lessonId, pageOrder, voiceId, tone } = req.body;
-        let { text, tonalPrompt } = req.body;
+        const { lessonId, pageOrder, voiceId, tone } = req.body as GetLessonAudioDTO;
+        let { text, tonalPrompt } = req.body as GetLessonAudioDTO;
 
         if (!lessonId || pageOrder === undefined) {
             res.status(400).json({ message: 'Missing required fields: lessonId, pageOrder' });

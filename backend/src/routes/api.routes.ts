@@ -5,6 +5,9 @@ import * as AudioController from '../controllers/audio.controller';
 import * as sessionController from '../controllers/session.controller';
 import * as lessonController from '../controllers/lesson.controller';
 import Session from '../models/Session';
+import { validationMiddleware } from '../middleware/validation.middleware';
+import { CreateSessionDTO } from '../dtos/session.dto';
+import { GetLessonAudioDTO } from '../dtos/generation.dto';
 
 const router = Router();
 
@@ -32,10 +35,10 @@ router.post('/analyze/video', AnalysisController.upload.single('video'), Analysi
 
 // TTS & Audio Routes
 router.post('/tts/speak', TTSController.speakText);
-router.post('/audio/get-or-create', AudioController.getLessonAudio);
+router.post('/audio/get-or-create', validationMiddleware(GetLessonAudioDTO), AudioController.getLessonAudio);
 
 // Session routes
-router.post('/sessions/start', sessionController.startSession);
+router.post('/sessions/start', validationMiddleware(CreateSessionDTO), sessionController.startSession);
 router.put('/sessions/:sessionId/complete', AnalysisController.upload.single('video'), sessionController.completeSession);
 router.post('/sessions/:sessionId/practice', AnalysisController.upload.single('video'), sessionController.addPractice);
 router.get('/sessions/:sessionId', sessionController.getSession);

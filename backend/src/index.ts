@@ -1,5 +1,6 @@
 // src/index.ts
 
+import 'reflect-metadata';
 import app from './app';
 import connectDB from './config/db';
 
