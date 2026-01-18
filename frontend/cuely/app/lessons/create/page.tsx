@@ -39,15 +39,14 @@ export default function CreateLessonPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: '65a000000000000000000000', // Mock User ID
-          baseLessonType: formData.baseLessonType,
-          numberOfModules: formData.numberOfModules,
-          difficulty: formData.difficulty,
+          lessonName: selectedLesson?.label || formData.baseLessonType,
+          count: formData.numberOfModules,
+          difficulty: formData.difficulty.charAt(0).toUpperCase() + formData.difficulty.slice(1), // Capitalize
         }),
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Redirect to the newly created lesson
         router.push(`/lessons/${data.data.lessonId}`);
@@ -76,7 +75,7 @@ export default function CreateLessonPage() {
             <ChevronLeft size={20} />
             Back
           </button>
-          
+
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center">
               <Sparkles size={24} className="text-white" />
@@ -98,16 +97,15 @@ export default function CreateLessonPage() {
             <p className="text-sm text-gray-600 mb-4">
               Select which social skill you'd like to practice
             </p>
-            
+
             <div className="grid grid-cols-1 gap-3">
               {EXISTING_LESSONS.map((lesson) => (
                 <label
                   key={lesson.value}
-                  className={`relative flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    formData.baseLessonType === lesson.value
+                  className={`relative flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.baseLessonType === lesson.value
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -144,7 +142,7 @@ export default function CreateLessonPage() {
             <p className="text-sm text-gray-600 mb-4">
               How many scenarios would you like to practice? (1-10)
             </p>
-            
+
             <div className="flex items-center gap-4">
               <input
                 type="range"
@@ -158,7 +156,7 @@ export default function CreateLessonPage() {
                 {formData.numberOfModules}
               </div>
             </div>
-            
+
             <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
               <span>Quick (1-3)</span>
               <span>Standard (4-6)</span>
@@ -174,16 +172,15 @@ export default function CreateLessonPage() {
             <p className="text-sm text-gray-600 mb-4">
               Choose the challenge level that matches your skill
             </p>
-            
+
             <div className="grid grid-cols-3 gap-3">
               {DIFFICULTY_LEVELS.map((level) => (
                 <label
                   key={level.value}
-                  className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${
-                    formData.difficulty === level.value
+                  className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${formData.difficulty === level.value
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -241,11 +238,10 @@ export default function CreateLessonPage() {
             <button
               type="submit"
               disabled={isGenerating || !formData.baseLessonType}
-              className={`flex-1 px-6 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                isGenerating || !formData.baseLessonType
+              className={`flex-1 px-6 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${isGenerating || !formData.baseLessonType
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-purple-500 to-purple-700 text-white hover:from-purple-600 hover:to-purple-800 shadow-lg hover:shadow-xl'
-              }`}
+                }`}
             >
               {isGenerating ? (
                 <>
