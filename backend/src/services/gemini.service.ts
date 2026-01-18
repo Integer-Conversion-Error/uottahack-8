@@ -400,9 +400,7 @@ export class GeminiService {
         console.warn("Could not load ElevenLabsService, audio generation will be skipped.", e);
       }
 
-      for (let i = 0; i < modules.length; i++) {
-        const mod = modules[i];
-
+      await Promise.all(modules.map(async (mod, i) => {
         // 1. Audio
         if (mod.transcript && mod.audioSample && ElevenLabsService) {
           try {
@@ -452,7 +450,7 @@ export class GeminiService {
             mod.scenario.imageUrl = "https://placehold.co/600x400/E1D3BE/5E7381?text=Image+Unavailable";
           }
         }
-      }
+      }));
 
       return modules;
     } catch (error) {
@@ -581,8 +579,7 @@ export class GeminiService {
         console.warn("Could not load ElevenLabsService", e);
       }
 
-      for (let i = 0; i < lessonData.pages.length; i++) {
-        const page = lessonData.pages[i];
+      await Promise.all(lessonData.pages.map(async (page: any, i: number) => {
         const lessonId = lessonData.lessonId || "temp_lesson";
 
         // ENFORCE Page Order
@@ -636,7 +633,7 @@ export class GeminiService {
             }
           }
         }
-      }
+      }));
 
       return lessonData;
     } catch (error) {

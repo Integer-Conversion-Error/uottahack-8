@@ -24,22 +24,21 @@ async function seedImagesDB() {
         const lessons = await Lesson.find({});
         console.log(`Found ${lessons.length} lessons.`);
 
-        for (const lesson of lessons) {
+        // Process all lessons in parallel
+        await Promise.all(lessons.map(async (lesson) => {
             console.log(`Processing lesson: ${lesson.lessonName}`);
             let modified = false;
 
-            if (lesson.pages) {
-                // We need to mutate the pages array. Mongoose arrays can be tricky, 
-                // so we'll iterate and mark modified if we update something.
-                for (const page of lesson.pages) {
+            if (lesson.pages && lesson.pages.length > 0) {
+                // Process all pages in parallel
+                await Promise.all(lesson.pages.map(async (page: any) => {
                     if (page.pageType === 'practice' && page.scenario) {
 
                         // Check if imageUrl is missing or if the file doesn't exist
-                        const p = page as any;
-                        let shouldGenerate = !p.scenario.imageUrl;
+                        let shouldGenerate = !page.scenario.imageUrl;
 
-                        if (p.scenario.imageUrl) {
-                            const existingFileName = path.basename(p.scenario.imageUrl);
+                        if (page.scenario.imageUrl) {
+                            const existingFileName = path.basename(page.scenario.imageUrl);
                             const existingPath = path.join(IMAGES_DIR, existingFileName);
                             if (!fs.existsSync(existingPath)) {
                                 console.log(`  File missing for page ${page.pageOrder}: ${existingFileName}. Regenerating...`);
@@ -48,11 +47,11 @@ async function seedImagesDB() {
                         }
 
                         if (shouldGenerate) {
-                            console.log(`  Generating image for page ${page.pageOrder}...`);
+                            console.log(`  Generating image for page ${page.pageOrder} of ${lesson.lessonName}...`);
 
                             const prompt = `Create a scene for the following scenario:
-                            Context: ${p.scenario.context}
-                            Description: ${p.scenario.description}
+                            Context: ${page.scenario.context}
+                            Description: ${page.scenario.description}
                             
                             Style: Modern, sleek, slightly stylized digital art.
                             `;
@@ -68,17 +67,17 @@ async function seedImagesDB() {
                                     console.log(`    Saved to ${fileName}`);
 
                                     // Update Document
-                                    p.scenario.imageUrl = `/images/${fileName}`;
+                                    page.scenario.imageUrl = `/images/${fileName}`;
                                     modified = true;
                                 } else {
                                     console.warn(`    Failed to generate image for page ${page.pageOrder}`);
                                 }
                             } catch (err: any) {
-                                console.error(`    Error generating/saving image:`, err.message);
+                                console.error(`    Error generating/saving image for page ${page.pageOrder}:`, err.message);
                             }
                         }
                     }
-                }
+                }));
             }
 
             if (modified) {
@@ -89,7 +88,7 @@ async function seedImagesDB() {
             } else {
                 console.log(`  No changes for lesson ${lesson.lessonId}`);
             }
-        }
+        }));
 
         console.log('Image seeding completed.');
 

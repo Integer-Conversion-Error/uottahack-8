@@ -120,7 +120,8 @@ export class ElevenLabsService {
         voiceId: string = "21m00Tcm4TlvDq8ikWAM",
         tonalPrompt?: string,
         tone?: string,
-        context?: string
+        context?: string,
+        maxRetries: number = 3
     ): Promise<Buffer> {
         if (!ELEVENLABS_API_KEY) {
             throw new Error("ElevenLabs API Key is missing");
@@ -147,31 +148,47 @@ export class ElevenLabsService {
             }
         }
 
-        try {
-            const response = await axios.post(
-                `${API_URL}/text-to-speech/${voiceId}`,
-                {
-                    text: finalText,
-                    model_id: "eleven_v3", // Using Turbo v3
-                    voice_settings: {
-                        stability: 0, // Lower stability (0.3) encourages more emotive/varied performance
-                        similarity_boost: 0.5, // Higher boost (0.75) ensures the voice stays true to the original sample
+        let lastError: any;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await axios.post(
+                    `${API_URL}/text-to-speech/${voiceId}`,
+                    {
+                        text: finalText,
+                        model_id: "eleven_v3", // Using Turbo v3
+                        voice_settings: {
+                            stability: 0, // Lower stability (0.3) encourages more emotive/varied performance
+                            similarity_boost: 0.5, // Higher boost (0.75) ensures the voice stays true to the original sample
+                        },
                     },
-                },
-                {
-                    headers: {
-                        'xi-api-key': ELEVENLABS_API_KEY,
-                        'Content-Type': 'application/json',
-                    },
-                    responseType: 'arraybuffer',
-                }
-            );
+                    {
+                        headers: {
+                            'xi-api-key': ELEVENLABS_API_KEY,
+                            'Content-Type': 'application/json',
+                        },
+                        responseType: 'arraybuffer',
+                    }
+                );
 
-            return Buffer.from(response.data);
-        } catch (error: any) {
-            console.error("ElevenLabs TTS Error:", error.response?.data || error.message);
-            throw new Error("Failed to generate speech");
+                return Buffer.from(response.data);
+            } catch (error: any) {
+                lastError = error;
+                const status = error.response?.status;
+                const message = error.response?.data?.detail?.message || error.message;
+
+                console.warn(`ElevenLabs TTS attempt ${attempt}/${maxRetries} failed: ${message}`);
+
+                // If it's the last attempt, don't wait
+                if (attempt === maxRetries) break;
+
+                // Wait before retrying (exponential backoff: 1s, 2s, 4s...)
+                const delay = 1000 * Math.pow(2, attempt - 1);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
         }
+
+        console.error("ElevenLabs TTS All retries failed:", lastError?.response?.data || lastError?.message);
+        throw new Error(`Failed to generate speech after ${maxRetries} attempts: ${lastError?.message}`);
     }
 }
 
