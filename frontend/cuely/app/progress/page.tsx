@@ -17,19 +17,19 @@ export default function ProgressPage() {
         try {
             setLoading(true);
             // Fetch user data
-            const userRes = await fetch(`http://localhost:4000/api/sessions/user/${userId}`);
+            const userRes = await fetch(`http://localhost:4000/api/users/${userId}`);
             const userData = await userRes.json();
-            
+
             // Fetch all achievements
             const achievementsRes = await fetch('http://localhost:4000/api/achievements');
             const achievementsData = await achievementsRes.json();
-            
+
             // Fetch user achievements
             const userAchievementsRes = await fetch(`http://localhost:4000/api/achievements/user/${userId}`);
             const userAchievementsData = await userAchievementsRes.json();
 
-            if (userData.success && userData.data.length > 0) {
-                setUserData(userData.data[0]);
+            if (userData.success) {
+                setUserData(userData.data);
             }
             if (achievementsData.success) {
                 setAchievements(achievementsData.data);
@@ -97,8 +97,8 @@ export default function ProgressPage() {
     // Calculate completion percentage
     const totalAchievements = achievements.length;
     const unlockedAchievements = userAchievements.length;
-    const completionPercentage = totalAchievements > 0 
-        ? Math.round((unlockedAchievements / totalAchievements) * 100) 
+    const completionPercentage = totalAchievements > 0
+        ? Math.round((unlockedAchievements / totalAchievements) * 100)
         : 0;
 
     return (
@@ -121,10 +121,10 @@ export default function ProgressPage() {
                             disabled={loading}
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-[#5E7381]/20 text-[#5E7381] rounded-xl font-medium hover:bg-[#5E7381]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <svg 
-                                className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} 
-                                fill="none" 
-                                stroke="currentColor" 
+                            <svg
+                                className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -196,58 +196,54 @@ export default function ProgressPage() {
                 <div className="space-y-8">
                     {/* Skills Section */}
                     <div>
-                    <h2 className="text-2xl font-bold text-[#5E7381] mb-4">Your Skills</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <SkillProgressCard
-                            skillName="Facial Expression"
-                            currentScore={skills.facialExpression || 0}
-                            icon={<Smile size={24} className="text-pink-600" />}
-                            color="bg-pink-100"
-                            nextMilestone={{
-                                name: "Facial Pro",
-                                threshold: 80
+                        <h2 className="text-2xl font-bold text-[#5E7381] mb-4">Your Skills</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <SkillProgressCard
+                                skillName="Facial Expression"
+                                currentScore={skills.facialExpression || 0}
+                                icon={<Smile size={24} className="text-pink-600" />}
+                                color="bg-pink-100"
+                            />
+                            <SkillProgressCard
+                                skillName="Tone Control"
+                                currentScore={skills.toneControl || 0}
+                                icon={<Mic size={24} className="text-blue-600" />}
+                                color="bg-blue-100"
+                            />
+                            <SkillProgressCard
+                                skillName="Eye Contact"
+                                currentScore={skills.eyeContact || 0}
+                                icon={<Eye size={24} className="text-green-600" />}
+                                color="bg-green-100"
+                            />
+                            <SkillProgressCard
+                                skillName="Body Language"
+                                currentScore={skills.bodyLanguage || 0}
+                                icon={<User size={24} className="text-purple-600" />}
+                                color="bg-purple-100"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Milestones Section */}
+                    <div>
+                        <MilestoneTracker
+                            achievements={achievements}
+                            userAchievements={userAchievements}
+                            userStats={{
+                                scenariosCompleted: stats.scenariosCompleted || 0,
+                                currentStreakDays: stats.currentStreakDays || 0,
+                                overallEmpathyScore: stats.overallEmpathyScore || 0
                             }}
-                        />
-                        <SkillProgressCard
-                            skillName="Tone Control"
-                            currentScore={skills.toneControl || 0}
-                            icon={<Mic size={24} className="text-blue-600" />}
-                            color="bg-blue-100"
-                        />
-                        <SkillProgressCard
-                            skillName="Eye Contact"
-                            currentScore={skills.eyeContact || 0}
-                            icon={<Eye size={24} className="text-green-600" />}
-                            color="bg-green-100"
-                        />
-                        <SkillProgressCard
-                            skillName="Body Language"
-                            currentScore={skills.bodyLanguage || 0}
-                            icon={<User size={24} className="text-purple-600" />}
-                            color="bg-purple-100"
+                            userSkills={{
+                                facialExpression: skills.facialExpression || 0,
+                                toneControl: skills.toneControl || 0,
+                                eyeContact: skills.eyeContact || 0,
+                                bodyLanguage: skills.bodyLanguage || 0
+                            }}
                         />
                     </div>
                 </div>
-
-                {/* Milestones Section */}
-                <div>
-                    <MilestoneTracker
-                        achievements={achievements}
-                        userAchievements={userAchievements}
-                        userStats={{
-                            scenariosCompleted: stats.scenariosCompleted || 0,
-                            currentStreakDays: stats.currentStreakDays || 0,
-                            overallEmpathyScore: stats.overallEmpathyScore || 0
-                        }}
-                        userSkills={{
-                            facialExpression: skills.facialExpression || 0,
-                            toneControl: skills.toneControl || 0,
-                            eyeContact: skills.eyeContact || 0,
-                            bodyLanguage: skills.bodyLanguage || 0
-                        }}
-                    />
-                </div>
-            </div>
             </main>
         </div>
     );

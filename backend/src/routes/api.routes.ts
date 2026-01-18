@@ -5,6 +5,7 @@ import * as AudioController from '../controllers/audio.controller';
 import * as sessionController from '../controllers/session.controller';
 import * as lessonController from '../controllers/lesson.controller';
 import * as AchievementController from '../controllers/achievement.controller';
+import * as UserController from '../controllers/user.controller';
 import Session from '../models/Session';
 import { validationMiddleware } from '../middleware/validation.middleware';
 import { CreateSessionDTO, SubmitPracticeResultDTO, AnalyzeVideoDTO } from '../dtos/session.dto';
@@ -50,6 +51,9 @@ router.put('/sessions/:sessionId/complete', AnalysisController.upload.single('vi
 router.post('/sessions/:sessionId/practice', AnalysisController.upload.single('video'), validationMiddleware(SubmitPracticeResultDTO), sessionController.addPractice);
 router.get('/sessions/:sessionId', sessionController.getSession);
 router.get('/sessions/user/:userId', sessionController.getUserSessions);
+
+// User Routes
+router.get('/users/:userId', UserController.getUser);
 
 
 export default router;
