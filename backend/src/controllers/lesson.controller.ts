@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Lesson from '../models/Lesson';
 import { GeminiService } from '../services/gemini.service';
 import Ajv from 'ajv';
-import lessonSchema from '../../../scripts/lesson_schema.json';
+import lessonSchema from '../schemas/lesson_schema.json';
 
 const ajv = new Ajv({ allErrors: true });
 

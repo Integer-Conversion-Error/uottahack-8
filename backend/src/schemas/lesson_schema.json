@@ -1,0 +1,180 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Facial Cue Training Lesson Schema",
+    "description": "Schema for lessons in the facial cue training application",
+    "type": "object",
+    "required": [
+        "lessonId",
+        "lessonNumber",
+        "lessonName",
+        "pages"
+    ],
+    "properties": {
+        "lessonId": {
+            "type": "string",
+            "description": "Unique identifier for the lesson"
+        },
+        "lessonNumber": {
+            "type": "integer",
+            "description": "Sequential lesson number",
+            "minimum": 1
+        },
+        "lessonName": {
+            "type": "string",
+            "description": "Name of the lesson (e.g., 'Sarcasm', 'Empathy')"
+        },
+        "pages": {
+            "type": "array",
+            "description": "Ordered array of lesson pages",
+            "minItems": 4,
+            "items": {
+                "oneOf": [
+                    {
+                        "$ref": "#/definitions/definitionPage"
+                    },
+                    {
+                        "$ref": "#/definitions/practicePage"
+                    }
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "definitionPage": {
+            "type": "object",
+            "required": [
+                "pageType",
+                "pageOrder",
+                "term",
+                "definition",
+                "visualCues",
+                "toneCues"
+            ],
+            "properties": {
+                "pageType": {
+                    "type": "string",
+                    "enum": [
+                        "definition"
+                    ]
+                },
+                "pageOrder": {
+                    "type": "integer",
+                    "description": "Order in the lesson flow (0-based index)"
+                },
+                "term": {
+                    "type": "string",
+                    "description": "The term being defined (e.g., 'Sarcasm')"
+                },
+                "definition": {
+                    "type": "string",
+                    "description": "Clear definition of the term"
+                },
+                "visualCues": {
+                    "type": "array",
+                    "description": "Visual cues to look for",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "toneCues": {
+                    "type": "array",
+                    "description": "Tone and vocal cues to listen for",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            }
+        },
+        "practicePage": {
+            "type": "object",
+            "required": [
+                "pageType",
+                "pageOrder",
+                "scenario",
+                "audioSample",
+                "transcript",
+                "appropriateResponse"
+            ],
+            "properties": {
+                "pageType": {
+                    "type": "string",
+                    "enum": [
+                        "practice"
+                    ]
+                },
+                "pageOrder": {
+                    "type": "integer",
+                    "description": "Order in the lesson flow (0-based index)"
+                },
+                "scenario": {
+                    "type": "object",
+                    "required": [
+                        "context",
+                        "description"
+                    ],
+                    "properties": {
+                        "context": {
+                            "type": "string",
+                            "description": "The situational context for the practice"
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Additional details about the scenario"
+                        }
+                    }
+                },
+                "audioSample": {
+                    "type": "object",
+                    "required": [
+                        "url",
+                        "duration"
+                    ],
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "description": "URL to the audio sample file"
+                        },
+                        "duration": {
+                            "type": "number",
+                            "description": "Duration of audio in seconds"
+                        },
+                        "tonalPrompt": {
+                            "type": "string",
+                            "description": "Description of the tone for TTS generation"
+                        },
+                        "toneTag": {
+                            "type": "string",
+                            "description": "A bracketed tone tag (e.g., '[Sarcastic]') to guide Text-to-Speech generation"
+                        }
+                    }
+                },
+                "transcript": {
+                    "type": "string",
+                    "description": "Text transcript of the audio sample"
+                },
+                "appropriateResponse": {
+                    "type": "object",
+                    "required": [
+                        "description",
+                        "keyElements"
+                    ],
+                    "properties": {
+                        "description": {
+                            "type": "string",
+                            "description": "Description of what an appropriate response looks/sounds like"
+                        },
+                        "keyElements": {
+                            "type": "array",
+                            "description": "Key elements that should be present in the response",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
