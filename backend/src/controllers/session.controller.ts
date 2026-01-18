@@ -124,7 +124,7 @@ export const addPractice = async (req: Request, res: Response) => {
                 eye_contact: analysisResult.eye_contact,
                 body_language: analysisResult.body_language,
                 tone: analysisResult.tone,
-                content_accuracy: analysisResult.content_accuracy
+                content: analysisResult.content
             }
         };
 
@@ -229,7 +229,7 @@ export const completeSession = async (req: Request, res: Response) => {
                 eye_contact: analysisResult.eye_contact,
                 body_language: analysisResult.body_language,
                 tone: analysisResult.tone,
-                content_accuracy: analysisResult.content_accuracy
+                content: analysisResult.content
             }
         };
 

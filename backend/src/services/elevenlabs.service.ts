@@ -6,6 +6,9 @@ import { execSync } from 'child_process';
 import FormData from 'form-data';
 import { GeminiService } from './gemini.service';
 
+// Use ffmpeg-static for bundled ffmpeg binary (auto-installed via npm)
+import ffmpegPath from 'ffmpeg-static';
+
 dotenv.config();
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
@@ -15,6 +18,7 @@ export class ElevenLabsService {
 
     /**
      * Converts video file to MP3 audio using ffmpeg.
+     * Uses ffmpeg-static npm package for cross-platform compatibility.
      * @param inputPath - Path to the input video file.
      * @returns Path to the converted MP3 file.
      */
@@ -23,11 +27,12 @@ export class ElevenLabsService {
 
         console.log(`Converting ${inputPath} to MP3...`);
 
-        // Use full path to ffmpeg since PATH may not be updated in current shell
-        const ffmpegPath = process.env.FFMPEG_PATH || 'C:\\\\Users\\\\togoo\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.0.1-full_build\\\\bin\\\\ffmpeg.exe';
+        if (!ffmpegPath) {
+            throw new Error('ffmpeg-static not found. Run: npm install ffmpeg-static');
+        }
 
         try {
-            // Extract audio and convert to MP3
+            // Extract audio and convert to MP3 using bundled ffmpeg
             execSync(`"${ffmpegPath}" -y -i "${inputPath}" -vn -acodec libmp3lame -q:a 2 "${outputPath}"`, {
                 stdio: 'pipe'
             });

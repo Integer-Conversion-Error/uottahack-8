@@ -18,7 +18,7 @@ export interface IPracticeResult {
         eye_contact: { score: string; feedback: string };
         body_language: { score: string; feedback: string };
         tone: { score: string; feedback: string };
-        content_accuracy?: { score: string; feedback: string };
+        content?: { score: string; feedback: string };
     };
 }
 
@@ -79,7 +79,7 @@ const PracticeResultSchema = new Schema({
         eye_contact: { score: String, feedback: String },
         body_language: { score: String, feedback: String },
         tone: { score: String, feedback: String },
-        content_accuracy: { score: String, feedback: String }
+        content: { score: String, feedback: String }
     }
 }, { _id: false });
 
