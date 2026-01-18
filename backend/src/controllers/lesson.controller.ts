@@ -134,11 +134,14 @@ export const generateLessonOrModules = async (req: Request, res: Response) => {
             lessonData.lessonNumber = (maxLesson?.lessonNumber || 0) + 1;
             lessonData.difficulty = difficulty.toLowerCase();
 
-            // Create and save
-            const newLesson = new Lesson(lessonData);
-            await newLesson.save();
+            // Use findOneAndUpdate with upsert to handle duplicate lessonId gracefully
+            const newLesson = await Lesson.findOneAndUpdate(
+                { lessonId: lessonData.lessonId },
+                lessonData,
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            );
 
-            console.log(`Saved new lesson to database: ${newLesson.lessonId}`);
+            console.log(`Saved/updated lesson in database: ${newLesson.lessonId}`);
 
             return res.json({
                 success: true,
