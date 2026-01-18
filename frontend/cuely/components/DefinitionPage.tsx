@@ -53,7 +53,7 @@ export default function DefinitionPage({
                 </h2>
 
                 <ul className="space-y-3">
-                  {toneCues.map((cue, index) => (
+                  {(toneCues || []).map((cue, index) => (
                     <li key={index} className="text-md text-black flex items-start">
                       <span className="text-[#5E7381] mr-3 mt-1">•</span>
                       <span>{cue}</span>
@@ -68,7 +68,7 @@ export default function DefinitionPage({
                   Visual Cues
                 </h2>
                 <ul className="space-y-3">
-                  {visualCues.map((cue, index) => (
+                  {(visualCues || []).map((cue, index) => (
                     <li key={index} className="text-md text-black flex items-start">
                       <span className="text-[#5E7381] mr-3 mt-1">•</span>
                       <span>{cue}</span>

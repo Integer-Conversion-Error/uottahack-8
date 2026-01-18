@@ -13,25 +13,30 @@ export class GeminiService {
 
   static async generateImage(prompt: string): Promise<Buffer | null> {
     try {
-      console.log(`Generating image with prompt: ${prompt}`);
+      console.log(`[DEBUG] Generating image with prompt: "${prompt}"`);
       const response = await ai.models.generateContent({
         model: "gemini-3-pro-image-preview",
         contents: prompt,
       });
 
+      console.log(`[DEBUG] Image API Response received. Candidates: ${response?.candidates?.length}`);
+
       if (response && response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) {
+        console.log("[DEBUG] Response Parts:", JSON.stringify(response.candidates[0].content.parts, null, 2));
         for (const part of response.candidates[0].content.parts) {
           // Check for inlineData
           if (part.inlineData && part.inlineData.data) {
             const imageData = part.inlineData.data;
-            return Buffer.from(imageData, "base64");
+            const buffer = Buffer.from(imageData, "base64");
+            console.log(`[DEBUG] Image data found! Buffer size: ${buffer.length} bytes`);
+            return buffer;
           }
         }
       }
-      console.warn("No image data found in response");
+      console.warn("[DEBUG] No image data found in response parts.");
       return null;
     } catch (error) {
-      console.error("Gemini Image Generation Error:", error);
+      console.error("[DEBUG] Gemini Image Generation Error:", error);
       return null;
     }
   }
@@ -51,7 +56,7 @@ export class GeminiService {
       `;
 
       const result = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3-pro-preview",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       });
 
@@ -154,7 +159,7 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-2.0-flash", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
+            model: "gemini-3-pro-preview", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
             contents: [
               {
                 parts: [
@@ -301,26 +306,39 @@ export class GeminiService {
         2. Make scenarios realistic and challenging based on valid social dynamics.
       `;
 
-      const result = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: {
-          responseMimeType: "application/json",
-          // @ts-ignore
-          responseSchema: practicePageSchema
-        }
-      });
-
-      const responseText = result.text || "[]";
+      let retries = 5;
       let modules: any[] = [];
-      try {
-        modules = JSON.parse(responseText);
-        if (!Array.isArray(modules)) {
-          modules = [modules];
+
+      while (retries > 0) {
+        try {
+          const result = await ai.models.generateContent({
+            model: "gemini-3-pro-preview",
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            config: {
+              responseMimeType: "application/json",
+              // @ts-ignore
+              responseSchema: practicePageSchema
+            }
+          });
+
+          const responseText = result.text || "[]";
+          modules = JSON.parse(responseText);
+
+          if (!Array.isArray(modules)) {
+            modules = [modules];
+          }
+
+          // If successful, break the loop
+          break;
+        } catch (e) {
+          console.warn(`Gemini module generation failed, retrying... (${retries} left)`, e);
+          retries--;
+          if (retries === 0) {
+            console.error("Failed to generate modules after multiple attempts");
+            return [];
+          }
+          await new Promise(r => setTimeout(r, 1000));
         }
-      } catch (e) {
-        console.error("Failed to parse Gemini module generation:", e);
-        return [];
       }
 
       // Post-Processing: Generate Assets
@@ -359,7 +377,11 @@ export class GeminiService {
 
         // 2. Image
         if (mod.scenario && mod.scenario.description) {
+          // Default to placeholder (overwriting any hallucination)
+          mod.scenario.imageUrl = "https://placehold.co/600x400/5E7381/ffffff?text=Scenario+Image+Generating...";
+
           try {
+            console.log(`[DEBUG] Attempting to generate image for module ${i}...`);
             const imageBuffer = await this.generateImage(mod.scenario.description);
             if (imageBuffer) {
               const timestamp = Date.now();
@@ -369,9 +391,15 @@ export class GeminiService {
               const imagePath = `${imageDir}/${imageFileName}`;
               fs.writeFileSync(imagePath, imageBuffer);
               mod.scenario.imageUrl = `/images/${imageFileName}`;
+              console.log(`[DEBUG] Image saved to: ${imagePath}, URL set to: ${mod.scenario.imageUrl}`);
+            } else {
+              // Keep placeholder or set to a static "failed" image
+              console.warn(`[DEBUG] Image generation returned null for module ${i}, using fallback.`);
+              mod.scenario.imageUrl = "https://placehold.co/600x400/E1D3BE/5E7381?text=Image+Unavailable";
             }
           } catch (err) {
-            console.error("Failed to generate image for module:", err);
+            console.error(`[DEBUG] Failed to generate image for module ${i}:`, err);
+            mod.scenario.imageUrl = "https://placehold.co/600x400/E1D3BE/5E7381?text=Image+Unavailable";
           }
         }
       }
@@ -428,7 +456,8 @@ export class GeminiService {
                     keyElements: { type: "ARRAY", items: { type: "STRING" } }
                   }
                 }
-              }
+              },
+              required: ["pageType", "pageOrder", "visualCues", "toneCues"]
             }
           }
         },
@@ -439,25 +468,58 @@ export class GeminiService {
         Create a FULL lesson on "${lessonName}".
         Difficulty: ${difficulty}
         
-        Structure:
-        1. First page MUST be a "definition" page explaining the concept.
-        2. Followed by ${count} "practice" pages (scenarios).
+        The lesson MUST have exactly ${count + 1} pages in this specific order:
+        1. Page 1: "definition" page (Explaining the concept).
+        2. Pages 2 to ${count + 1}: "practice" pages (Scenarios).
         
-        Generate realistic social scenarios.
+        CRITICAL RULES:
+        1. For the "definition" page (ONLY the first page):
+           - "pageType" MUST be "definition".
+           - "term" and "definition" must be filled.
+           - "visualCues" and "toneCues" MUST have at least 3 items.
+           - "scenario", "audioSample", "transcript", "appropriateResponse" can be empty/null.
+           
+        2. For "practice" pages (All subsequent pages):
+           - "pageType" MUST be "practice".
+           - "scenario", "audioSample", "transcript", "appropriateResponse" MUST be filled.
+           - "visualCues" and "toneCues" MUST be empty arrays [].
+           - "term" and "definition" MUST be empty strings.
+        
+        3. "pageOrder" must be sequential starting from 1.
+        4. Generate realistic social scenarios.
       `;
 
-      const result = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: {
-          responseMimeType: "application/json",
-          // @ts-ignore
-          responseSchema: fullLessonSchema
-        }
-      });
+      let retries = 5;
+      let lessonData: any = null;
 
-      const lessonData = JSON.parse(result.text || "{}");
-      if (!lessonData.pages) return null;
+      while (retries > 0) {
+        try {
+          const result = await ai.models.generateContent({
+            model: "gemini-3-pro-image-preview",
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            config: {
+              responseMimeType: "application/json",
+              // @ts-ignore
+              responseSchema: fullLessonSchema
+            }
+          });
+
+          lessonData = JSON.parse(result.text || "{}");
+          if (!lessonData.pages) throw new Error("Invalid lesson data structure");
+
+          break; // Success
+        } catch (e) {
+          console.warn(`Gemini full lesson generation failed, retrying... (${retries} left)`, e);
+          retries--;
+          if (retries === 0) {
+            console.error("Failed to generate full lesson after multiple attempts");
+            return null;
+          }
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+
+      if (!lessonData) return null;
 
       let ElevenLabsService: any;
       try {
@@ -470,6 +532,9 @@ export class GeminiService {
       for (let i = 0; i < lessonData.pages.length; i++) {
         const page = lessonData.pages[i];
         const lessonId = lessonData.lessonId || "temp_lesson";
+
+        // ENFORCE Page Order
+        page.pageOrder = i + 1;
 
         if (page.pageType === 'practice') {
           if (page.transcript && page.audioSample && ElevenLabsService) {
@@ -494,7 +559,11 @@ export class GeminiService {
           }
 
           if (page.scenario && page.scenario.description) {
+            // Default to placeholder
+            page.scenario.imageUrl = "https://placehold.co/600x400/5E7381/ffffff?text=Scenario+Image+Generating...";
+
             try {
+              console.log(`[DEBUG] Attempting to generate image for FULL lesson page ${i}...`);
               const imageBuffer = await this.generateImage(page.scenario.description);
               if (imageBuffer) {
                 const timestamp = Date.now();
@@ -504,9 +573,14 @@ export class GeminiService {
                 const imagePath = `${imageDir}/${imageFileName}`;
                 fs.writeFileSync(imagePath, imageBuffer);
                 page.scenario.imageUrl = `/images/${imageFileName}`;
+                console.log(`[DEBUG] Image saved to: ${imagePath}, URL set to: ${page.scenario.imageUrl}`);
+              } else {
+                console.warn(`[DEBUG] Image generation returned null for page ${i}, using fallback.`);
+                page.scenario.imageUrl = "https://placehold.co/600x400/E1D3BE/5E7381?text=Image+Unavailable";
               }
             } catch (err) {
-              console.error("Failed to generate image for module:", err);
+              console.error(`[DEBUG] Failed to generate image for page ${i}:`, err);
+              page.scenario.imageUrl = "https://placehold.co/600x400/E1D3BE/5E7381?text=Image+Unavailable";
             }
           }
         }

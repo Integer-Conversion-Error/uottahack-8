@@ -35,6 +35,9 @@ export default function PracticePage({
   totalSteps,
   isSubmitting = false,
 }: PracticePageProps) {
+  const safeScenario = scenario || { context: "Context missing", description: "Description missing", imageUrl: "" };
+  const safeAudioSample = audioSample || { url: "", duration: 0, tonalPrompt: "" };
+
   const [practicePhase, setPracticePhase] = useState<'listen' | 'respond'>('listen');
   const [isRecording, setIsRecording] = useState(false);
   const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
@@ -71,7 +74,7 @@ export default function PracticePage({
               <div className="mb-6">
                 <h3 className="text-lg uppercase tracking-wider text-gray-500 font-semibold mb-2">Context</h3>
                 <p className="text-md text-black leading-relaxed font-medium">
-                  {scenario.context}
+                  {safeScenario.context}
                 </p>
               </div>
 
@@ -79,18 +82,18 @@ export default function PracticePage({
                 <h3 className="text-lg uppercase tracking-wider text-gray-500 font-semibold mb-2">Situation</h3>
                 {/* Scenario Image */}
                 {/* @ts-ignore */}
-                {scenario.imageUrl && (
+                {safeScenario.imageUrl && (
                   <div className="mb-4 rounded-xl overflow-hidden shadow-sm">
                     <img
                       /* @ts-ignore */
-                      src={scenario.imageUrl.startsWith('http') ? scenario.imageUrl : `http://localhost:4000${scenario.imageUrl}`}
+                      src={safeScenario.imageUrl.startsWith('http') ? safeScenario.imageUrl : `http://localhost:4000${safeScenario.imageUrl}`}
                       alt="Scenario visualization"
                       className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                 )}
                 <p className="text-md text-gray-700 leading-relaxed">
-                  {scenario.description}
+                  {safeScenario.description}
                 </p>
               </div>
 
