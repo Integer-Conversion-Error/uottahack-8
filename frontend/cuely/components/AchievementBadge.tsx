@@ -21,15 +21,22 @@ export default function AchievementBadge({
     rarity = 'common' 
 }: AchievementBadgeProps) {
     const rarityColors = {
-        common: 'border-slate-200 text-slate-500 bg-slate-50',
-        uncommon: 'border-blue-200 text-blue-600 bg-blue-50',
-        rare: 'border-purple-200 text-purple-600 bg-purple-50',
-        legendary: 'border-amber-200 text-amber-600 bg-amber-50'
+        common: 'border-slate-200 text-slate-600',
+        uncommon: 'border-blue-200 text-blue-600',
+        rare: 'border-purple-200 text-purple-600',
+        legendary: 'border-amber-200 text-amber-600'
+    };
+
+    const rarityAccents = {
+        common: 'bg-slate-50',
+        uncommon: 'bg-blue-50',
+        rare: 'bg-purple-50',
+        legendary: 'bg-amber-50'
     };
 
     return (
         <div className={`
-            relative group p-4 rounded-2xl border-2 transition-all duration-300
+            relative group p-4 rounded-2xl border-2 transition-all duration-300 bg-white
             ${unlocked 
                 ? `${rarityColors[rarity]} shadow-sm hover:shadow-md hover:scale-[1.02] cursor-default` 
                 : 'border-dashed border-slate-200 opacity-40 grayscale'}
@@ -43,7 +50,7 @@ export default function AchievementBadge({
             <div className="flex flex-col items-center text-center gap-3">
                 <div className={`
                     w-16 h-16 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6
-                    ${unlocked ? 'bg-white shadow-inner' : 'bg-slate-100'}
+                    ${unlocked ? rarityAccents[rarity] : 'bg-slate-100'}
                 `}>
                     {iconUrl ? (
                          // eslint-disable-next-line @next/next/no-img-element
