@@ -1,12 +1,10 @@
 // app/lessons/[lessonId]/page.tsx
 "use client";
 
-import Link from "next/link";
 import React, { useState, useEffect, useRef, use } from "react";
 import { gsap } from "gsap";
 import DefinitionPage from "@/components/DefinitionPage";
 import ResultsPage, { SessionAnalysis } from "@/components/ResultsPage";
-import Image from "next/image";
 
 import PracticePage from "@/components/PracticePage";
 import AchievementPopup from "@/components/AchievementPopup";
@@ -240,7 +238,7 @@ export default function LessonPage({ params }: LessonPageProps) {
             <div className="text-center">
               <h1
                 ref={titleRef}
-                className="text-6xl font-bold text-black mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]"
+                className="text-6xl font-bold text-black mb-4 opacity-0"
               >
                 Lesson {lessonData.lessonNumber}
               </h1>
@@ -254,7 +252,7 @@ export default function LessonPage({ params }: LessonPageProps) {
         {pageIndex >= 0 &&
           pageIndex < lessonData.pages.length &&
           !showFeedback && (
-            <div className="h-screen flex flex-col overflow-hidden pt-30">
+            <div className="h-screen flex flex-col overflow-hidden pt-10">
               <ProgressBar
                 currentStep={pageIndex + 1}
                 totalSteps={lessonData.pages.length + 1}
@@ -286,7 +284,7 @@ export default function LessonPage({ params }: LessonPageProps) {
           )}
 
         {showFeedback && analysisResult && (
-          <div className="h-screen flex flex-col overflow-hidden">
+          <div className="h-screen flex flex-col overflow-hidden py-8 mb-10">
             <ProgressBar
               currentStep={pageIndex + 1}
               totalSteps={lessonData.pages.length + 1}

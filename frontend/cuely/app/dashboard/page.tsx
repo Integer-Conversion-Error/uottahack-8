@@ -141,8 +141,8 @@ export default function DashboardPage() {
         <main className="p-10">
             <header ref={headerRef} className="flex justify-between items-center mb-10">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#5E7381] mb-1">Welcome back, Alex!</h1>
-                    <p className="text-[#5E7381]/70">Track your progress and improve your social confidence.</p>
+                    <h1 className="text-3xl font-bold text-black mb-1">Welcome back, Alex!</h1>
+                    <p className="text-black">Track your progress and improve your social confidence.</p>
                 </div>
                 <div className="flex gap-3">
                     <button 
