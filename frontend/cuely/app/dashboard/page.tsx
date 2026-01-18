@@ -82,8 +82,8 @@ export default function DashboardPage() {
             const userId = '65a000000000000000000000'; // Mock User ID
 
             const [sessionsRes, userRes] = await Promise.all([
-                fetch(`http://localhost:4000/api/sessions/user/${userId}`),
-                fetch(`http://localhost:4000/api/users/${userId}`)
+                fetch(`/api/sessions/user/${userId}`),
+                fetch(`/api/users/${userId}`)
             ]);
 
             const sessionsData = await sessionsRes.json();

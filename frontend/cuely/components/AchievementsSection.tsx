@@ -28,11 +28,11 @@ export default function AchievementsSection({ userId }: { userId: string }) {
         const fetchData = async () => {
             try {
                 // Fetch all available achievements
-                const allRes = await fetch('http://localhost:4000/api/achievements');
+                const allRes = await fetch('/api/achievements');
                 const allData = await allRes.json();
                 
                 // Fetch user unlocked achievements
-                const userRes = await fetch(`http://localhost:4000/api/achievements/user/${userId}`);
+                const userRes = await fetch(`/api/achievements/user/${userId}`);
                 const userData = await userRes.json();
 
                 if (allData.success) setAllAchievements(allData.data);

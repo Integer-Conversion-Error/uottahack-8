@@ -39,10 +39,10 @@ export default function AchievementsPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const allRes = await fetch('http://localhost:4000/api/achievements');
+                const allRes = await fetch('/api/achievements');
                 const allData = await allRes.json();
                 
-                const userRes = await fetch(`http://localhost:4000/api/achievements/user/${userId}`);
+                const userRes = await fetch(`/api/achievements/user/${userId}`);
                 const userData = await userRes.json();
 
                 if (allData.success) setAllAchievements(allData.data);

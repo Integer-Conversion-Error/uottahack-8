@@ -63,7 +63,7 @@ export default function LessonPage({ params }: LessonPageProps) {
     const fetchLesson = async () => {
       try {
         const res = await fetch(
-          `http://localhost:4000/api/lessons/${lessonId}`,
+          `/api/lessons/${lessonId}`,
         );
         const data = await res.json();
         if (data.success) {
@@ -118,7 +118,7 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const startSession = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/sessions/start", {
+      const res = await fetch("/api/sessions/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -168,7 +168,7 @@ export default function LessonPage({ params }: LessonPageProps) {
 
     try {
       const res = await fetch(
-        `http://localhost:4000/api/sessions/${sessionId}/complete`,
+        `/api/sessions/${sessionId}/complete`,
         {
           method: "PUT",
           body: formData,

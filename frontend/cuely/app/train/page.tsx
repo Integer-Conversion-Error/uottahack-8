@@ -29,7 +29,7 @@ export default function TrainingPage() {
 
   const fetchScenarios = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/scenarios');
+      const response = await fetch('/api/scenarios');
       const data = await response.json();
       if (data.success) {
         setScenarios(data.data);
@@ -41,7 +41,7 @@ export default function TrainingPage() {
 
   const startSession = async (scenario: Scenario) => {
     try {
-      const response = await fetch('http://localhost:4000/api/sessions/start', {
+      const response = await fetch('/api/sessions/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,7 +96,7 @@ export default function TrainingPage() {
       //    engagementScore: 80
       // }));
 
-      const response = await fetch(`http://localhost:4000/api/sessions/${sessionId}/complete`, {
+      const response = await fetch(`/api/sessions/${sessionId}/complete`, {
         method: 'PUT',
         body: formData, // No Content-Type header needed, browser sets it for FormData
       });

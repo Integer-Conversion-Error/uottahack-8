@@ -24,7 +24,7 @@ export default function AchievementPopup({ badgeId, onClose }: AchievementPopupP
     useEffect(() => {
         const fetchAchievement = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/achievements');
+                const res = await fetch('/api/achievements');
                 const data = await res.json();
                 if (data.success) {
                     const found = data.data.find((a: Achievement) => a.badgeId === badgeId);

@@ -17,15 +17,15 @@ export default function ProgressPage() {
         try {
             setLoading(true);
             // Fetch user data
-            const userRes = await fetch(`http://localhost:4000/api/users/${userId}`);
+            const userRes = await fetch(`/api/users/${userId}`);
             const userData = await userRes.json();
 
             // Fetch all achievements
-            const achievementsRes = await fetch('http://localhost:4000/api/achievements');
+            const achievementsRes = await fetch('/api/achievements');
             const achievementsData = await achievementsRes.json();
 
             // Fetch user achievements
-            const userAchievementsRes = await fetch(`http://localhost:4000/api/achievements/user/${userId}`);
+            const userAchievementsRes = await fetch(`/api/achievements/user/${userId}`);
             const userAchievementsData = await userAchievementsRes.json();
 
             if (userData.success) {

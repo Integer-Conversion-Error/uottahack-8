@@ -296,7 +296,7 @@ export default function PracticePage({
                   <div className="mb-4 rounded-xl overflow-hidden shadow-sm">
                     <img
                       /* @ts-ignore */
-                      src={safeScenario.imageUrl.startsWith('http') ? safeScenario.imageUrl : `http://localhost:4000${safeScenario.imageUrl}`}
+                      src={safeScenario.imageUrl.startsWith('http') ? safeScenario.imageUrl : `/api${safeScenario.imageUrl}`}
                       alt="Scenario visualization"
                       className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
                     />
@@ -363,7 +363,7 @@ export default function PracticePage({
 
                     <audio
                       id="audio-element"
-                      src={audioSample.url.startsWith('http') ? audioSample.url : `http://localhost:4000${audioSample.url}`}
+                      src={audioSample.url.startsWith('http') ? audioSample.url : `/api${audioSample.url}`}
                       onEnded={() => setIsPlaying(false)}
                       onPause={() => setIsPlaying(false)}
                       onPlay={() => setIsPlaying(true)}

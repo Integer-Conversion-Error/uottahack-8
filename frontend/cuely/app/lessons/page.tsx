@@ -123,7 +123,7 @@ export default function LessonsPage() {
   useEffect(() => {
     const fetchLessons = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/lessons');
+        const res = await fetch('/api/lessons');
         const data = await res.json();
         if (data.success) {
           setLessons(data.data);

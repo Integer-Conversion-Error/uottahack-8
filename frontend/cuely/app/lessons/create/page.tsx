@@ -35,7 +35,7 @@ export default function CreateLessonPage() {
 
     try {
       // API call to generate custom lesson
-      const response = await fetch('http://localhost:4000/api/lessons/generate', {
+      const response = await fetch('/api/lessons/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
