@@ -12,7 +12,8 @@ import ffmpegPath from 'ffmpeg-static';
 dotenv.config();
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const API_URL = "https://api.elevenlabs.io/v1";
+// Use Cloudflare Worker proxy to bypass IP blocking on cloud providers
+const API_URL = "https://elevenlabs-proxy.esad-n-kaya.workers.dev/v1";
 
 export class ElevenLabsService {
 
