@@ -9,21 +9,13 @@ import ResultsPage, { SessionAnalysis } from '@/components/ResultsPage';
 import Image from 'next/image';
 
 import PracticePage from '@/components/PracticePage';
+import AchievementPopup from '@/components/AchievementPopup';
 
 interface LessonPageProps {
   params: Promise<{
     lessonId: string;
   }>;
 }
-
-const LESSON_MAP: Record<string, any> = {
-  [EmpathyLesson.lessonId]: EmpathyLesson,
-  [SarcasmLesson.lessonId]: SarcasmLesson,
-  'empathy-beg-001': EmpathyLesson, // Fallback ID matching file
-  'lesson-sarcasm-001': SarcasmLesson // Fallback ID matching file
-};
-
-const getLesson = (id: string) => LESSON_MAP[id] || null;
 
 // Progress Bar Component
 function ProgressBar({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
@@ -55,6 +47,7 @@ export default function LessonPage({ params }: LessonPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [practiceIndex, setPracticeIndex] = useState<number>(0);
+  const [newAchievement, setNewAchievement] = useState<string | null>(null);
 
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
@@ -156,6 +149,10 @@ export default function LessonPage({ params }: LessonPageProps) {
               setAnalysisResult(data.data.analysis);
               setPracticeIndex(prev => prev + 1);
               setShowFeedback(true);
+              
+              if (data.data.newlyUnlocked && data.data.newlyUnlocked.length > 0) {
+                  setNewAchievement(data.data.newlyUnlocked[0]);
+              }
           } else {
               console.error('Analysis failed:', data.message);
               alert("Analysis failed: " + data.message);
@@ -194,95 +191,88 @@ export default function LessonPage({ params }: LessonPageProps) {
       handleNext();
   };
 
-  // Loading Screen - NO PROGRESS BAR
-  if (pageIndex === -1) {
-       return (
-       <div className="min-h-screen flex items-center justify-center bg-[#E1D3BE]">
-        <div className="text-center">
-          <h1 ref={titleRef} className="text-6xl font-bold text-black mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]">
-            Lesson {lessonData.lessonNumber}
-          </h1>
-          <p ref={descriptionRef} className="text-3xl text-black opacity-0">
-            {lessonData.lessonName}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const currentPageData = lessonData?.pages?.[pageIndex];
 
-  // Intercept for Feedback/Results View
-  if (showFeedback && analysisResult) {
-      return (
-          <div className="h-screen flex flex-col overflow-hidden">
-            <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
-            <ResultsPage
-              analysis={analysisResult}
-              onNext={handleFeedbackNext}
-              onTryAgain={() => setShowFeedback(false)}
-              currentStep={pageIndex + 1}
-              totalSteps={lessonData.pages.length + 1}
-            />
-          </div>
-      );
-  }
-
-  // Final Completion Screen
-  if (pageIndex === lessonData.pages.length) {
-    return (
-        <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center flex-col gap-6 text-center p-8">
-            <h1 className="text-5xl font-bold text-[#5E7381]">Lesson Complete!</h1>
-            <p className="text-xl text-gray-700">You have completed all scenarios.</p>
-            <div className="flex gap-4 mt-8">
-                <a href="/lessons" className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm">
-                    Back to Lessons
-                </a>
-                <a href="/dashboard" className="px-8 py-3 bg-[#5E7381] text-white rounded-xl font-bold hover:bg-[#4a5c6a] transition-colors shadow-lg">
-                    Go to Dashboard
-                </a>
+  return (
+    <div className="relative">
+      {/* Container for content */}
+      <div className="min-h-screen">
+          {pageIndex === -1 && (
+            <div className="min-h-screen flex items-center justify-center bg-[#E1D3BE]">
+                <div className="text-center">
+                    <h1 ref={titleRef} className="text-6xl font-bold text-black mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]">
+                        Lesson {lessonData.lessonNumber}
+                    </h1>
+                    <p ref={descriptionRef} className="text-3xl text-black opacity-0">
+                        {lessonData.lessonName}
+                    </p>
+                </div>
             </div>
-        </div>
-    );
-  }
+          )}
 
-  // Content Pages
-  const currentPageData = lessonData.pages[pageIndex];
-  if (!currentPageData) return <div>Error: Page data missing</div>;
+          {pageIndex >= 0 && pageIndex < lessonData.pages.length && !showFeedback && (
+              <div className="h-screen flex flex-col overflow-hidden pt-30">
+                  <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
+                  {currentPageData.pageType === 'definition' ? (
+                      <DefinitionPage
+                          term={currentPageData.term}
+                          definition={currentPageData.definition}
+                          visualCues={currentPageData.visualCues}
+                          toneCues={currentPageData.toneCues}
+                          onNext={handleNext}
+                          currentStep={pageIndex + 1}
+                          totalSteps={lessonData.pages.length + 1}
+                      />
+                  ) : (
+                      <PracticePage
+                          scenario={currentPageData.scenario}
+                          audioSample={currentPageData.audioSample}
+                          transcript={currentPageData.transcript}
+                          onNext={handlePracticeSubmit}
+                          onBack={handleBack}
+                          currentStep={pageIndex + 1}
+                          totalSteps={lessonData.pages.length + 1}
+                          isSubmitting={isSubmitting}
+                      />
+                  )}
+              </div>
+          )}
 
-  if (currentPageData.pageType === 'definition') {
-    return (
-      <div className="h-screen flex flex-col overflow-hidden pt-30">
-        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
-        <DefinitionPage
-          term={currentPageData.term}
-          definition={currentPageData.definition}
-          visualCues={currentPageData.visualCues}
-          toneCues={currentPageData.toneCues}
-          onNext={handleNext}
-          onBack={handleBack}
-          currentStep={pageIndex + 1}
-          totalSteps={lessonData.pages.length + 1}
-        />
+          {showFeedback && analysisResult && (
+              <div className="h-screen flex flex-col overflow-hidden">
+                  <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
+                  <ResultsPage
+                      analysis={analysisResult}
+                      onNext={handleFeedbackNext}
+                      onTryAgain={() => setShowFeedback(false)}
+                      currentStep={pageIndex + 1}
+                      totalSteps={lessonData.pages.length + 1}
+                  />
+              </div>
+          )}
+
+          {pageIndex === lessonData.pages.length && (
+              <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center flex-col gap-6 text-center p-8">
+                  <h1 className="text-5xl font-bold text-[#5E7381]">Lesson Complete!</h1>
+                  <p className="text-xl text-gray-700">You have completed all scenarios.</p>
+                  <div className="flex gap-4 mt-8">
+                      <a href="/lessons" className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm">
+                          Back to Lessons
+                      </a>
+                      <a href="/dashboard" className="px-8 py-3 bg-[#5E7381] text-white rounded-xl font-bold hover:bg-[#4a5c6a] transition-colors shadow-lg">
+                          Go to Dashboard
+                      </a>
+                  </div>
+              </div>
+          )}
       </div>
-    );
-  }
 
-  if (currentPageData.pageType === 'practice') {
-    return (
-      <div className="h-screen flex flex-col overflow-hidden">
-        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
-        <PracticePage
-          scenario={currentPageData.scenario}
-          audioSample={currentPageData.audioSample}
-          transcript={currentPageData.transcript}
-          onNext={handlePracticeSubmit}
-          onBack={handleBack}
-          currentStep={pageIndex + 1}
-          totalSteps={lessonData.pages.length + 1}
-          isSubmitting={isSubmitting}
+      {newAchievement && (
+        <AchievementPopup 
+            badgeId={newAchievement} 
+            onClose={() => setNewAchievement(null)} 
         />
-      </div>
-    );
-  }
-
-  return <div>Unknown page type: {currentPageData.pageType}</div>;
+      )}
+    </div>
+  );
 }

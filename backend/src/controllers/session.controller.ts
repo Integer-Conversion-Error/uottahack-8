@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import Session from '../models/Session';
 import User from '../models/User';
 import { GeminiService } from '../services/gemini.service';
+import { AchievementService } from '../services/achievement.service';
 import fs from 'fs';
 import { CreateSessionDTO } from '../dtos/session.dto';
 
@@ -96,14 +97,11 @@ export const addPractice = async (req: Request, res: Response) => {
             });
         }
 
-        // Determine tone for analysis
         const tone = targetTone || "General Social Cue";
         const context = promptContext || scenarioContext || "User is practicing a social interaction.";
 
-        // Run AI analysis
         const analysisResult = await GeminiService.analyzeVideo(filePath, tone, context);
 
-        // Create practice result
         const practiceResult = {
             practiceIndex: parseInt(practiceIndex) || session.practices.length,
             scenarioContext: scenarioContext || context,
@@ -120,11 +118,9 @@ export const addPractice = async (req: Request, res: Response) => {
             }
         };
 
-        // Add to practices array
         session.practices.push(practiceResult);
         session.completedPractices = session.practices.length;
 
-        // Check if all practices are complete
         if (session.completedPractices >= session.totalPractices) {
             session.completedAt = new Date();
             session.durationSeconds = Math.floor(
@@ -134,6 +130,29 @@ export const addPractice = async (req: Request, res: Response) => {
 
         await session.save();
 
+        // Update User Stats & Check Achievements
+        let newlyUnlocked: string[] = [];
+        try {
+            const user = await User.findById(session.userId);
+            if (user) {
+                user.stats.scenariosCompleted = (user.stats.scenariosCompleted || 0) + 1;
+
+                const weight = 0.2;
+                user.skills.facialExpression = (user.skills.facialExpression || 0) * (1 - weight) + (analysisResult.facial_expression || 0) * weight;
+                user.skills.toneControl = (user.skills.toneControl || 0) * (1 - weight) + (analysisResult.tone || 0) * weight;
+                user.skills.eyeContact = (user.skills.eyeContact || 0) * (1 - weight) + (analysisResult.eye_contact || 0) * weight;
+                user.skills.bodyLanguage = (user.skills.bodyLanguage || 0) * (1 - weight) + (analysisResult.body_language || 0) * weight;
+
+                user.stats.overallEmpathyScore = (user.skills.facialExpression + user.skills.toneControl + user.skills.eyeContact + user.skills.bodyLanguage) / 4;
+
+                await user.save();
+
+                newlyUnlocked = await AchievementService.checkAndAwardAchievements(user._id.toString());
+            }
+        } catch (statsError) {
+            console.error('Error updating user stats or checking achievements:', statsError);
+        }
+
         res.json({
             success: true,
             data: {
@@ -142,7 +161,8 @@ export const addPractice = async (req: Request, res: Response) => {
                 analysis: practiceResult.analysis,
                 completedPractices: session.completedPractices,
                 totalPractices: session.totalPractices,
-                isLessonComplete: session.completedPractices >= session.totalPractices
+                isLessonComplete: session.completedPractices >= session.totalPractices,
+                newlyUnlocked
             }
         });
 
@@ -153,47 +173,34 @@ export const addPractice = async (req: Request, res: Response) => {
             message: error instanceof Error ? error.message : 'Failed to add practice'
         });
     } finally {
-        // Cleanup file
         if (filePath && fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
     }
 };
 
-// Complete session with analysis (legacy - for single practice sessions)
+// Complete session (legacy)
 export const completeSession = async (req: Request, res: Response) => {
     let filePath = '';
     try {
         const { sessionId } = req.params;
         const { transcript, presageData, practiceIndex, scenarioContext } = req.body;
-        console.log('Completing session:', sessionId);
-        console.log('File present:', !!req.file);
-        if (req.file) console.log('File path:', req.file.path, 'Mimetype:', req.file.mimetype);
 
         if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: 'Video file is required'
-            });
+            return res.status(400).json({ success: false, message: 'Video file is required' });
         }
         filePath = req.file.path;
 
         const session = await Session.findById(sessionId);
         if (!session) {
-            return res.status(404).json({
-                success: false,
-                message: 'Session not found'
-            });
+            return res.status(404).json({ success: false, message: 'Session not found' });
         }
 
-        // Determine tone and context
-        let targetTone = req.body.targetTone || "General Social Cue";
-        let promptContext = req.body.promptContext || scenarioContext || "User is practicing a social interaction.";
+        const targetTone = req.body.targetTone || "General Social Cue";
+        const promptContext = req.body.promptContext || scenarioContext || "User is practicing a social interaction.";
 
-        // Run AI analysis
         const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);
 
-        // Create practice result and add to array
         const practiceResult = {
             practiceIndex: parseInt(practiceIndex) || session.practices.length,
             scenarioContext: scenarioContext || promptContext,
@@ -213,19 +220,11 @@ export const completeSession = async (req: Request, res: Response) => {
         session.practices.push(practiceResult);
         session.completedPractices = session.practices.length;
 
-        // Also store in legacy fields for backward compatibility
         if (transcript) session.response.transcript = transcript;
         if (presageData) session.response.presageData = presageData;
         session.response.audioUrl = req.file.path;
-        session.analysis = {
-            rawScore: 0,
-            facial_expression: analysisResult.facial_expression,
-            eye_contact: analysisResult.eye_contact,
-            body_language: analysisResult.body_language,
-            tone: analysisResult.tone
-        };
+        session.analysis = practiceResult.analysis;
 
-        // Check if all practices are complete
         if (session.completedPractices >= session.totalPractices) {
             session.completedAt = new Date();
             session.durationSeconds = Math.floor(
@@ -233,12 +232,29 @@ export const completeSession = async (req: Request, res: Response) => {
             );
         }
 
-        console.log('DEBUG: Session practices before save:', session.practices.length);
-        console.log('DEBUG: Session completedPractices:', session.completedPractices);
+        await session.save();
 
-        const savedSession = await session.save();
-        console.log('DEBUG: Session saved successfully. ID:', savedSession._id);
-        console.log('DEBUG: Saved practices count:', savedSession.practices.length);
+        let newlyUnlocked: string[] = [];
+        try {
+            const user = await User.findById(session.userId);
+            if (user) {
+                user.stats.scenariosCompleted = (user.stats.scenariosCompleted || 0) + 1;
+
+                const weight = 0.2;
+                user.skills.facialExpression = (user.skills.facialExpression || 0) * (1 - weight) + (analysisResult.facial_expression || 0) * weight;
+                user.skills.toneControl = (user.skills.toneControl || 0) * (1 - weight) + (analysisResult.tone || 0) * weight;
+                user.skills.eyeContact = (user.skills.eyeContact || 0) * (1 - weight) + (analysisResult.eye_contact || 0) * weight;
+                user.skills.bodyLanguage = (user.skills.bodyLanguage || 0) * (1 - weight) + (analysisResult.body_language || 0) * weight;
+
+                user.stats.overallEmpathyScore = (user.skills.facialExpression + user.skills.toneControl + user.skills.eyeContact + user.skills.bodyLanguage) / 4;
+
+                await user.save();
+
+                newlyUnlocked = await AchievementService.checkAndAwardAchievements(user._id.toString());
+            }
+        } catch (statsError) {
+            console.error('Error updating user stats or checking achievements:', statsError);
+        }
 
         res.json({
             success: true,
@@ -248,7 +264,8 @@ export const completeSession = async (req: Request, res: Response) => {
                 analysis: practiceResult.analysis,
                 completedPractices: session.completedPractices,
                 totalPractices: session.totalPractices,
-                isLessonComplete: session.completedPractices >= session.totalPractices
+                isLessonComplete: session.completedPractices >= session.totalPractices,
+                newlyUnlocked
             }
         });
 
@@ -259,7 +276,6 @@ export const completeSession = async (req: Request, res: Response) => {
             message: error instanceof Error ? error.message : 'Failed to complete session'
         });
     } finally {
-        // Cleanup file
         if (filePath && fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
@@ -270,28 +286,14 @@ export const completeSession = async (req: Request, res: Response) => {
 export const getSession = async (req: Request, res: Response) => {
     try {
         const { sessionId } = req.params;
-
-        const session = await Session.findById(sessionId)
-            .populate('userId', 'name email');
-
+        const session = await Session.findById(sessionId).populate('userId', 'name email');
         if (!session) {
-            return res.status(404).json({
-                success: false,
-                message: 'Session not found'
-            });
+            return res.status(404).json({ success: false, message: 'Session not found' });
         }
-
-        res.json({
-            success: true,
-            data: session
-        });
-
+        res.json({ success: true, data: session });
     } catch (error) {
         console.error('Error fetching session:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch session'
-        });
+        res.status(500).json({ success: false, message: 'Failed to fetch session' });
     }
 };
 
@@ -300,21 +302,10 @@ export const getUserSessions = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
         const limit = parseInt(req.query.limit as string) || 20;
-
-        const sessions = await Session.find({ userId })
-            .sort({ startedAt: -1 })
-            .limit(limit);
-
-        res.json({
-            success: true,
-            data: sessions
-        });
-
+        const sessions = await Session.find({ userId }).sort({ startedAt: -1 }).limit(limit);
+        res.json({ success: true, data: sessions });
     } catch (error) {
         console.error('Error fetching user sessions:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch sessions'
-        });
+        res.status(500).json({ success: false, message: 'Failed to fetch sessions' });
     }
 };

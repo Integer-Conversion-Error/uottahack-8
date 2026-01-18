@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
 import { ElevenLabsService } from '../services/elevenlabs.service';
 import { GetLessonAudioDTO } from '../dtos/generation.dto';
+import fs from 'fs';
+import path from 'path';
+
+const AUDIO_DIR = path.join(process.cwd(), 'uploads', 'audio');
+
+// Ensure directory exists
+if (!fs.existsSync(AUDIO_DIR)) {
+    fs.mkdirSync(AUDIO_DIR, { recursive: true });
+}
 
 export const getLessonAudio = async (req: Request, res: Response) => {
     try {

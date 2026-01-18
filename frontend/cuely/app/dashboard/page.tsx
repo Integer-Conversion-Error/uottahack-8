@@ -13,6 +13,7 @@ import {
     Search,
     Filter
 } from 'lucide-react';
+import AchievementsSection from '@/components/AchievementsSection';
 
 interface Session {
     _id: string;
@@ -166,6 +167,10 @@ export default function DashboardPage() {
                         </div>
                     ))}
                 </section>
+
+                <div className="mb-10">
+                    <AchievementsSection userId="65a000000000000000000000" />
+                </div>
 
                 {/* Recent Sessions */}
                 <section ref={sessionsRef} className="bg-white rounded-2xl shadow-sm border border-[#5E7381]/10 overflow-hidden">
