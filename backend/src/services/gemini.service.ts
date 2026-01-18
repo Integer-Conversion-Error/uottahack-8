@@ -245,4 +245,277 @@ export class GeminiService {
       throw error;
     }
   }
+  static async generateExampleModules(lessonId: string, lessonName: string, metadata: any, count: number, difficulty: string): Promise<any[]> {
+    try {
+      console.log(`Generating ${count} example modules for lesson: ${lessonName}`);
+
+      const practicePageSchema = {
+        type: "ARRAY",
+        items: {
+          type: "OBJECT",
+          properties: {
+            pageType: { type: "STRING", enum: ["practice"] },
+            pageOrder: { type: "INTEGER" },
+            scenario: {
+              type: "OBJECT",
+              properties: {
+                context: { type: "STRING" },
+                description: { type: "STRING" },
+                imageUrl: { type: "STRING" }
+              },
+              required: ["context", "description"]
+            },
+            audioSample: {
+              type: "OBJECT",
+              properties: {
+                url: { type: "STRING" },
+                duration: { type: "NUMBER" },
+                tonalPrompt: { type: "STRING" },
+                toneTag: { type: "STRING" }
+              },
+              required: ["tonalPrompt", "toneTag"]
+            },
+            transcript: { type: "STRING" },
+            appropriateResponse: {
+              type: "OBJECT",
+              properties: {
+                description: { type: "STRING" },
+                keyElements: { type: "ARRAY", items: { type: "STRING" } }
+              },
+              required: ["description", "keyElements"]
+            }
+          },
+          required: ["pageType", "scenario", "audioSample", "transcript", "appropriateResponse"]
+        }
+      };
+
+      const prompt = `
+        You are an expert educational content creator for a social skills learning app.
+        Generate ${count} NEW practice scenarios (modules) for the lesson "${lessonName}".
+        
+        Metadata: ${JSON.stringify(metadata)}
+        Difficulty: ${difficulty}
+        
+        CRITICAL: 
+        1. Ensure "transcript" matches the "tonalPrompt" in style.
+        2. Make scenarios realistic and challenging based on valid social dynamics.
+      `;
+
+      const result = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          // @ts-ignore
+          responseSchema: practicePageSchema
+        }
+      });
+
+      const responseText = result.text || "[]";
+      let modules: any[] = [];
+      try {
+        modules = JSON.parse(responseText);
+        if (!Array.isArray(modules)) {
+          modules = [modules];
+        }
+      } catch (e) {
+        console.error("Failed to parse Gemini module generation:", e);
+        return [];
+      }
+
+      // Post-Processing: Generate Assets
+      let ElevenLabsService: any;
+      try {
+        const module = require('./elevenlabs.service');
+        ElevenLabsService = module.ElevenLabsService;
+      } catch (e) {
+        console.warn("Could not load ElevenLabsService, audio generation will be skipped.", e);
+      }
+
+      for (let i = 0; i < modules.length; i++) {
+        const mod = modules[i];
+
+        // 1. Audio
+        if (mod.transcript && mod.audioSample && ElevenLabsService) {
+          try {
+            const audioBuffer = await ElevenLabsService.generateSpeech(
+              mod.transcript,
+              "21m00Tcm4TlvDq8ikWAM",
+              mod.audioSample.tonalPrompt,
+              mod.audioSample.toneTag
+            );
+            const timestamp = Date.now();
+            const audioFileName = `${lessonId}_gen_${timestamp}_${i}.mp3`;
+            const audioDir = './public/audio';
+            if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
+            const audioPath = `${audioDir}/${audioFileName}`;
+            fs.writeFileSync(audioPath, audioBuffer);
+            mod.audioSample.url = `/audio/${audioFileName}`;
+            mod.audioSample.duration = 5;
+          } catch (err) {
+            console.error("Failed to generate audio for module:", err);
+          }
+        }
+
+        // 2. Image
+        if (mod.scenario && mod.scenario.description) {
+          try {
+            const imageBuffer = await this.generateImage(mod.scenario.description);
+            if (imageBuffer) {
+              const timestamp = Date.now();
+              const imageFileName = `${lessonId}_gen_${timestamp}_${i}.png`;
+              const imageDir = './public/images';
+              if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir, { recursive: true });
+              const imagePath = `${imageDir}/${imageFileName}`;
+              fs.writeFileSync(imagePath, imageBuffer);
+              mod.scenario.imageUrl = `/images/${imageFileName}`;
+            }
+          } catch (err) {
+            console.error("Failed to generate image for module:", err);
+          }
+        }
+      }
+
+      return modules;
+    } catch (error) {
+      console.error("Gemini Module Generation Error:", error);
+      throw error;
+    }
+  }
+
+  static async generateFullLesson(lessonName: string, count: number, difficulty: string): Promise<any> {
+    try {
+      console.log(`Generating FULL lesson for: ${lessonName}`);
+
+      const fullLessonSchema = {
+        type: "OBJECT",
+        properties: {
+          lessonId: { type: "STRING", description: "kebab-case-slug-of-lesson-name" },
+          lessonName: { type: "STRING" },
+          pages: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                pageType: { type: "STRING", enum: ["definition", "practice"] },
+                pageOrder: { type: "INTEGER" },
+                term: { type: "STRING" },
+                definition: { type: "STRING" },
+                visualCues: { type: "ARRAY", items: { type: "STRING" } },
+                toneCues: { type: "ARRAY", items: { type: "STRING" } },
+                scenario: {
+                  type: "OBJECT",
+                  properties: {
+                    context: { type: "STRING" },
+                    description: { type: "STRING" },
+                    imageUrl: { type: "STRING" }
+                  }
+                },
+                audioSample: {
+                  type: "OBJECT",
+                  properties: {
+                    url: { type: "STRING" },
+                    duration: { type: "NUMBER" },
+                    tonalPrompt: { type: "STRING" },
+                    toneTag: { type: "STRING" }
+                  }
+                },
+                transcript: { type: "STRING" },
+                appropriateResponse: {
+                  type: "OBJECT",
+                  properties: {
+                    description: { type: "STRING" },
+                    keyElements: { type: "ARRAY", items: { type: "STRING" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        required: ["lessonId", "lessonName", "pages"]
+      };
+
+      const prompt = `
+        Create a FULL lesson on "${lessonName}".
+        Difficulty: ${difficulty}
+        
+        Structure:
+        1. First page MUST be a "definition" page explaining the concept.
+        2. Followed by ${count} "practice" pages (scenarios).
+        
+        Generate realistic social scenarios.
+      `;
+
+      const result = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          // @ts-ignore
+          responseSchema: fullLessonSchema
+        }
+      });
+
+      const lessonData = JSON.parse(result.text || "{}");
+      if (!lessonData.pages) return null;
+
+      let ElevenLabsService: any;
+      try {
+        const module = require('./elevenlabs.service');
+        ElevenLabsService = module.ElevenLabsService;
+      } catch (e) {
+        console.warn("Could not load ElevenLabsService", e);
+      }
+
+      for (let i = 0; i < lessonData.pages.length; i++) {
+        const page = lessonData.pages[i];
+        const lessonId = lessonData.lessonId || "temp_lesson";
+
+        if (page.pageType === 'practice') {
+          if (page.transcript && page.audioSample && ElevenLabsService) {
+            try {
+              const audioBuffer = await ElevenLabsService.generateSpeech(
+                page.transcript,
+                "21m00Tcm4TlvDq8ikWAM",
+                page.audioSample.tonalPrompt,
+                page.audioSample.toneTag
+              );
+              const timestamp = Date.now();
+              const audioFileName = `${lessonId}_gen_${timestamp}_${i}.mp3`;
+              const audioDir = './public/audio';
+              if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
+              const audioPath = `${audioDir}/${audioFileName}`;
+              fs.writeFileSync(audioPath, audioBuffer);
+              page.audioSample.url = `/audio/${audioFileName}`;
+              page.audioSample.duration = 5;
+            } catch (err) {
+              console.error("Failed to generate audio for module:", err);
+            }
+          }
+
+          if (page.scenario && page.scenario.description) {
+            try {
+              const imageBuffer = await this.generateImage(page.scenario.description);
+              if (imageBuffer) {
+                const timestamp = Date.now();
+                const imageFileName = `${lessonId}_gen_${timestamp}_${i}.png`;
+                const imageDir = './public/images';
+                if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir, { recursive: true });
+                const imagePath = `${imageDir}/${imageFileName}`;
+                fs.writeFileSync(imagePath, imageBuffer);
+                page.scenario.imageUrl = `/images/${imageFileName}`;
+              }
+            } catch (err) {
+              console.error("Failed to generate image for module:", err);
+            }
+          }
+        }
+      }
+
+      return lessonData;
+    } catch (error) {
+      console.error("Gemini Full Lesson Generation Error:", error);
+      throw error;
+    }
+  }
 }

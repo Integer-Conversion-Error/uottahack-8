@@ -29,6 +29,7 @@ router.get('/debug/sessions', async (req, res) => {
 // Lesson Routes
 router.get('/lessons', lessonController.getAllLessons);
 router.get('/lessons/:lessonId', lessonController.getLessonById);
+router.post('/lessons/generate', lessonController.generateLessonOrModules);
 
 // Achievement Routes
 router.get('/achievements', AchievementController.getAllAchievements);
