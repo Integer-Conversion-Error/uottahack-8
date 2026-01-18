@@ -13,41 +13,64 @@ export default function ProgressPage() {
 
     const userId = '65a000000000000000000000';
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch user data
-                const userRes = await fetch(`http://localhost:4000/api/sessions/user/${userId}`);
-                const userData = await userRes.json();
-                
-                // Fetch all achievements
-                const achievementsRes = await fetch('http://localhost:4000/api/achievements');
-                const achievementsData = await achievementsRes.json();
-                
-                // Fetch user achievements
-                const userAchievementsRes = await fetch(`http://localhost:4000/api/achievements/user/${userId}`);
-                const userAchievementsData = await userAchievementsRes.json();
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            // Fetch user data
+            const userRes = await fetch(`http://localhost:4000/api/sessions/user/${userId}`);
+            const userData = await userRes.json();
+            
+            // Fetch all achievements
+            const achievementsRes = await fetch('http://localhost:4000/api/achievements');
+            const achievementsData = await achievementsRes.json();
+            
+            // Fetch user achievements
+            const userAchievementsRes = await fetch(`http://localhost:4000/api/achievements/user/${userId}`);
+            const userAchievementsData = await userAchievementsRes.json();
 
-                if (userData.success && userData.data.length > 0) {
-                    setUserData(userData.data[0]);
-                }
-                if (achievementsData.success) {
-                    setAchievements(achievementsData.data);
-                }
-                if (userAchievementsData.success) {
-                    setUserAchievements(userAchievementsData.data);
-                }
-            } catch (error) {
-                console.error('Error fetching progress data:', error);
-            } finally {
-                setLoading(false);
+            if (userData.success && userData.data.length > 0) {
+                setUserData(userData.data[0]);
             }
-        };
+            if (achievementsData.success) {
+                setAchievements(achievementsData.data);
+            }
+            if (userAchievementsData.success) {
+                setUserAchievements(userAchievementsData.data);
+            }
+        } catch (error) {
+            console.error('Error fetching progress data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    // Initial fetch
+    useEffect(() => {
         fetchData();
     }, [userId]);
 
-    if (loading) {
+    // Auto-refresh every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchData();
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(interval);
+    }, [userId]);
+
+    // Refresh when page becomes visible (user returns to tab)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                fetchData();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [userId]);
+
+    if (loading && !userData) {
         return (
             <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center">
                 <div className="text-center">
@@ -83,14 +106,31 @@ export default function ProgressPage() {
             <main className="p-10">
                 {/* Header */}
                 <header className="flex flex-col mb-10">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-[#5E7381] to-[#4a5c6a] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#5E7381]/30">
-                            <Trophy size={32} />
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 bg-gradient-to-br from-[#5E7381] to-[#4a5c6a] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#5E7381]/30">
+                                <Trophy size={32} />
+                            </div>
+                            <div>
+                                <h1 className="text-4xl font-bold text-[#5E7381]">Your Progress</h1>
+                                <p className="text-[#5E7381]/70 text-lg">Track your improvement and upcoming achievements</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-4xl font-bold text-[#5E7381]">Your Progress</h1>
-                            <p className="text-[#5E7381]/70 text-lg">Track your improvement and upcoming achievements</p>
-                        </div>
+                        <button
+                            onClick={fetchData}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-[#5E7381]/20 text-[#5E7381] rounded-xl font-medium hover:bg-[#5E7381]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <svg 
+                                className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            {loading ? 'Refreshing...' : 'Refresh'}
+                        </button>
                     </div>
 
                     {/* Stats Overview */}
