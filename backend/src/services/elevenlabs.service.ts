@@ -23,20 +23,28 @@ export class ElevenLabsService {
 
         console.log(`Converting ${inputPath} to MP3...`);
 
-        // Use full path to ffmpeg since PATH may not be updated in current shell
-        const ffmpegPath = process.env.FFMPEG_PATH || 'C:\\\\Users\\\\togoo\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.0.1-full_build\\\\bin\\\\ffmpeg.exe';
+        // Try ffmpeg from PATH first, fall back to specific path if needed
+        const ffmpegCommands = [
+            'ffmpeg',  // Try PATH first
+            process.env.FFMPEG_PATH,  // Then environment variable
+            'C:\\Users\\togoo\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe'  // Hardcoded fallback
+        ].filter(Boolean) as string[];
 
-        try {
-            // Extract audio and convert to MP3
-            execSync(`"${ffmpegPath}" -y -i "${inputPath}" -vn -acodec libmp3lame -q:a 2 "${outputPath}"`, {
-                stdio: 'pipe'
-            });
-            console.log(`Converted to: ${outputPath}`);
-            return outputPath;
-        } catch (error: any) {
-            console.error('FFmpeg conversion error:', error.message);
-            throw new Error(`Failed to convert video to MP3: ${error.message}`);
+        for (const ffmpegPath of ffmpegCommands) {
+            try {
+                // Extract audio and convert to MP3
+                execSync(`"${ffmpegPath}" -y -i "${inputPath}" -vn -acodec libmp3lame -q:a 2 "${outputPath}"`, {
+                    stdio: 'pipe'
+                });
+                console.log(`Converted to: ${outputPath} (using ${ffmpegPath})`);
+                return outputPath;
+            } catch (error: any) {
+                console.log(`FFmpeg not found at: ${ffmpegPath}, trying next...`);
+                continue;
+            }
         }
+
+        throw new Error(`Failed to convert video to MP3. FFmpeg not found. Install ffmpeg: winget install ffmpeg`);
     }
 
     /**

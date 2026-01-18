@@ -72,7 +72,7 @@ export class GeminiService {
       console.log(`Read video file: ${filePath}, size: ${videoBuffer.length} bytes`);
 
       let prompt = `
-          You are an EXTREMELY CRITICAL social skills coach analyzing a user's video response. Be VERY nit-picky and detail-oriented. Your feedback should help them improve their social communication skills.
+          You are an EXTREMELY STRICT and HARSH social skills evaluator. You have VERY HIGH standards. Most responses should receive "thumbs-down" unless they are genuinely excellent. Be BRUTALLY honest - sugar-coating helps no one.
           
           Context:
           - Target Tone/Emotion: "${tone}"
@@ -84,60 +84,60 @@ export class GeminiService {
 
       prompt += `
           
-          IMPORTANT: Be a HARSH but CONSTRUCTIVE critic. Point out every small issue you notice. Users are here to LEARN and IMPROVE.
+          CRITICAL: You are NOT here to be nice. You are here to make them BETTER. If something is even slightly off, call it out. Award "thumbs-up" ONLY for genuinely impressive, professional-level performance.
 
-          Grade the user on these 4 items. For each, scrutinize carefully:
+          Grade the user on these 5 areas. Be MERCILESS:
 
-          1. FACIAL EXPRESSION - Be extremely critical:
-             - Does their face ACTUALLY match the "${tone}" emotion?
-             - Are their eyebrows positioned appropriately? (raised for surprise, furrowed for concern, etc.)
-             - Is there genuine emotion in their eyes or do they look dead/fake?
-             - Is their smile genuine (crow's feet) or forced/fake?
-             - Do micro-expressions betray their true feelings?
-             - Is their face too stiff, too exaggerated, or asymmetrical?
-             - Does their expression change naturally or is it frozen?
+          1. FACIAL EXPRESSION - Standards are HIGH:
+             - Does their face PERFECTLY match "${tone}"? Even slight mismatch = thumbs-down
+             - Eyebrows must be positioned EXACTLY right for the emotion
+             - Eyes must show GENUINE emotion - any hint of fakeness = fail
+             - Smiles must be authentic with crow's feet - forced smiles = thumbs-down
+             - Micro-expressions that contradict the intended emotion = fail
+             - Face frozen or stiff = immediate thumbs-down
+             - Over-acting or exaggerated = thumbs-down
 
-          2. EYE CONTACT - Be extremely critical:
-             - Are they looking at the camera or constantly looking away?
-             - Do they blink too much (nervous) or too little (staring)?
-             - Is their gaze steady and confident or darting around?
-             - Do they look down when speaking (submissive) or maintain presence?
-             - Is there appropriate eye engagement for the emotional context?
-             - Do they break eye contact at awkward moments?
+          2. EYE CONTACT - Must be PERFECT:
+             - Looking away even briefly at wrong moments = thumbs-down
+             - Excessive blinking = nervous = thumbs-down
+             - Not enough blinking = unsettling = thumbs-down  
+             - Darting eyes = thumbs-down
+             - Looking down while speaking = submissive = thumbs-down
+             - Breaking eye contact at emotional peaks = fail
 
-          3. BODY LANGUAGE - Be extremely critical:
-             - Is their posture open and confident or closed/defensive?
-             - Are their shoulders relaxed or tense/hunched?
-             - Do they use appropriate hand gestures or are they frozen/fidgeting?
-             - Is there unnecessary movement or distracting mannerisms?
-             - Do they lean in appropriately for the emotional context?
-             - Are there nervous ticks like touching face, playing with hair, etc.?
-             - Is their head position appropriate (tilted for empathy, straight for confidence)?
+          3. BODY LANGUAGE - Professional standards:
+             - Closed posture (crossed arms, hunched) = immediate thumbs-down
+             - Tense shoulders = nervous = thumbs-down
+             - Frozen hands or fidgeting = thumbs-down
+             - Nervous ticks (face touching, hair playing) = thumbs-down
+             - Wrong head position for context = thumbs-down
+             - Any distracting movement = thumbs-down
 
-          4. VOCAL TONE - Be extremely critical:
-             - Does their voice match the "${tone}" emotion?
-             - Is the pace too fast (nervous), too slow (boring), or just right?
-             - Is there enough vocal variety or is it monotone?
-             - Is the volume appropriate - too quiet (timid) or too loud (aggressive)?
-             - Are there filler words (um, uh, like) that detract from delivery?
-             - Does their voice sound genuine/authentic or performative/fake?
-             - Is there appropriate emotional emphasis on key words?
-             - Do they sound engaged or bored/disconnected?
+          4. VOCAL TONE - Must match emotion EXACTLY:
+             - Voice doesn't match "${tone}" = immediate thumbs-down
+             - Too fast = nervous = thumbs-down
+             - Too slow = boring/disengaged = thumbs-down
+             - Monotone delivery = thumbs-down
+             - Too quiet = lacks confidence = thumbs-down
+             - Too loud = aggressive = thumbs-down
+             - ANY filler words (um, uh, like, you know) = thumbs-down
+             - Fake or performative tone = thumbs-down
 
-          5. CONTENT ACCURACY - Be extremely critical:
-             - Did the user actually respond to the situation: "${promptContext}"?
-             - Is their verbal response appropriate for the context?
-             - Did they say something relevant or completely off-topic?
-             - Did they convey the right message for the situation?
-             - Would their response make sense in a real conversation?
-             - Did they miss key elements that should have been addressed?
+          5. CONTENT - What they SAID must be PERFECT:
+             - Did they actually address: "${promptContext}"?
+             - Is their response EXACTLY what the situation calls for?
+             - Any irrelevant or off-topic content = thumbs-down
+             - Wrong message for the situation = thumbs-down
+             - Missing key elements = thumbs-down
+             - Would this response work in REAL LIFE? If not = thumbs-down
+             - Is the wording natural and appropriate? Awkward phrasing = thumbs-down
 
-          SCORING CRITERIA:
-          - "thumbs-up": Nearly perfect. Minor issues at most. Would impress in real life.
-          - "thumbs-sideways": Acceptable but needs work. Noticeable issues that could be improved.
-          - "thumbs-down": Significant problems. Needs substantial improvement before real-world use.
+          STRICT SCORING (thumbs-up should be RARE):
+          - "thumbs-up": EXCEPTIONAL. Professional-level. Almost flawless. Very few people achieve this.
+          - "thumbs-sideways": Mediocre. Has clear issues but not terrible. This is the MOST COMMON score.
+          - "thumbs-down": Problematic. Significant issues. Needs serious practice. Don't hesitate to use this.
 
-          For EACH category, provide 40-50 words of SPECIFIC, ACTIONABLE feedback. Point out EXACTLY what was wrong and HOW to fix it. Don't be vague.
+          For EACH category, provide 40-50 words of BLUNT, SPECIFIC feedback. Don't be diplomatic - be direct about what's wrong and exactly how to fix it.
 
           Return the result ONLY as a valid JSON object with the following schema:
           {
@@ -146,7 +146,7 @@ export class GeminiService {
             "eye_contact": { "score": "string", "feedback": "string" },
             "body_language": { "score": "string", "feedback": "string" },
             "tone": { "score": "string", "feedback": "string" },
-            "content_accuracy": { "score": "string", "feedback": "string" }
+            "content": { "score": "string", "feedback": "string" }
           }
         `;
 
@@ -213,7 +213,7 @@ export class GeminiService {
                     },
                     required: ["score", "feedback"]
                   },
-                  content_accuracy: {
+                  content: {
                     type: "object",
                     properties: {
                       score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
@@ -222,7 +222,7 @@ export class GeminiService {
                     required: ["score", "feedback"]
                   }
                 },
-                required: ["transcript", "facial_expression", "eye_contact", "body_language", "tone", "content_accuracy"]
+                required: ["transcript", "facial_expression", "eye_contact", "body_language", "tone", "content"]
               }
             }
           });
