@@ -9,6 +9,7 @@ interface DefinitionPageProps {
   visualCues: string[];
   toneCues: string[];
   onNext: () => void;
+  onBack: () => void;
   currentStep: number;
   totalSteps: number;
 }
@@ -19,13 +20,10 @@ export default function DefinitionPage({
   visualCues,
   toneCues,
   onNext,
+  onBack,
   currentStep,
   totalSteps,
-}: DefinitionPageProps) { 
-  const router = useRouter();
-  const handleBack = () => {
-    router.push('/lessons'); 
-}; 
+}: DefinitionPageProps) {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -40,7 +38,7 @@ export default function DefinitionPage({
               <h1 className="text-4xl font-bold text-[#5E7381] mb-4">
                 {term}
               </h1>
-              <hr className="border-[#5E7381] mb-4"/>
+              <hr className="border-[#5E7381] mb-4" />
               <p className="text-lg text-black leading-relaxed">
                 {definition}
               </p>
@@ -53,30 +51,30 @@ export default function DefinitionPage({
                 <h2 className="text-1xl font-semibold text-[#5E7381] mb-4">
                   Tone Cues
                 </h2>
- 
-                  <ul className="space-y-3">
-                    {toneCues.map((cue, index) => (
-                      <li key={index} className="text-md text-black flex items-start">
-                        <span className="text-[#5E7381] mr-3 mt-1">•</span>
-                        <span>{cue}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+
+                <ul className="space-y-3">
+                  {toneCues.map((cue, index) => (
+                    <li key={index} className="text-md text-black flex items-start">
+                      <span className="text-[#5E7381] mr-3 mt-1">•</span>
+                      <span>{cue}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
               {/* Visual Cues */}
               <div>
                 <h2 className="text-1xl font-semibold text-[#5E7381] mb-4">
                   Visual Cues
                 </h2>
-                  <ul className="space-y-3">
-                    {visualCues.map((cue, index) => (
-                      <li key={index} className="text-md text-black flex items-start">
-                        <span className="text-[#5E7381] mr-3 mt-1">•</span>
-                        <span>{cue}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <ul className="space-y-3">
+                  {visualCues.map((cue, index) => (
+                    <li key={index} className="text-md text-black flex items-start">
+                      <span className="text-[#5E7381] mr-3 mt-1">•</span>
+                      <span>{cue}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
@@ -84,7 +82,7 @@ export default function DefinitionPage({
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center">
             <button
-              onClick={handleBack}
+              onClick={onBack}
               className="px-6 py-3 bg-white text-[#5E7381] rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               ← Leave Lesson

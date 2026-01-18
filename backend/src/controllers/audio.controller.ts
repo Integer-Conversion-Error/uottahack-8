@@ -4,9 +4,9 @@ import { GetLessonAudioDTO } from '../dtos/generation.dto';
 import fs from 'fs';
 import path from 'path';
 
-const AUDIO_DIR = path.join(process.cwd(), 'uploads', 'audio');
+const AUDIO_DIR = path.join(__dirname, '../../public/audio');
 
-// Ensure directory exists
+// Ensure audio directory exists
 if (!fs.existsSync(AUDIO_DIR)) {
     fs.mkdirSync(AUDIO_DIR, { recursive: true });
 }
@@ -38,13 +38,13 @@ export const getLessonAudio = async (req: Request, res: Response) => {
                     return;
                 }
 
-                // Extract text and tonalPrompt from nested DTO structure
-                if (page.pageType === 'definition' && page.definition) {
-                    text = page.definition.transcript || page.definition.definition; // Fallback to definition if no transcript
-                    tonalPrompt = page.definition.tonalPrompt;
-                } else if (page.pageType === 'practice' && page.practice) {
-                    text = page.practice.transcript;
-                    tonalPrompt = page.practice.audioSample?.tonalPrompt;
+                // Extract text and tonalPrompt from flat structure
+                if (page.pageType === 'definition') {
+                    text = page.transcript || page.definition; // Fallback to definition if no transcript
+                    tonalPrompt = page.tonalPrompt;
+                } else if (page.pageType === 'practice') {
+                    text = page.transcript;
+                    tonalPrompt = page.audioSample?.tonalPrompt;
                 }
 
                 if (!text) {

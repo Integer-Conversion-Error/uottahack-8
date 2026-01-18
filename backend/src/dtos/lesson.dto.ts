@@ -3,35 +3,21 @@ import { Type } from 'class-transformer';
 
 // Enums
 export enum PageType {
-    Loading = 'loading',
     Definition = 'definition',
     Practice = 'practice',
-    Results = 'results'
 }
 
-// Sub-DTOs
-export class DefinitionPageContentDTO {
-    @IsString()
-    term: string;
-
-    @IsString()
-    definition: string;
-
-    @IsArray()
-    @IsString({ each: true })
-    visualCues: string[];
-
-    @IsArray()
-    @IsString({ each: true })
-    toneCues: string[];
-}
-
+// Sub-DTOs for practice pages
 export class PracticeScenarioDTO {
     @IsString()
     context: string;
 
     @IsString()
     description: string;
+
+    @IsString()
+    @IsOptional()
+    imageUrl?: string;
 }
 
 export class AudioSampleDTO {
@@ -47,7 +33,7 @@ export class AudioSampleDTO {
 
     @IsString()
     @IsOptional()
-    toneTag?: string; // e.g. [Sarcastic]
+    toneTag?: string;
 }
 
 export class AppropriateResponseDTO {
@@ -59,24 +45,7 @@ export class AppropriateResponseDTO {
     keyElements: string[];
 }
 
-export class PracticePageContentDTO {
-    @ValidateNested()
-    @Type(() => PracticeScenarioDTO)
-    scenario: PracticeScenarioDTO;
-
-    @ValidateNested()
-    @Type(() => AudioSampleDTO)
-    audioSample: AudioSampleDTO;
-
-    @IsString()
-    transcript: string;
-
-    @ValidateNested()
-    @Type(() => AppropriateResponseDTO)
-    appropriateResponse: AppropriateResponseDTO;
-}
-
-// Main Page DTO
+// Flat Page DTO - matches MongoDB schema exactly
 export class LessonPageDTO {
     @IsEnum(PageType)
     pageType: PageType;
@@ -84,22 +53,50 @@ export class LessonPageDTO {
     @IsInt()
     pageOrder: number;
 
-    // Content fields are optional based on pageType
+    // Definition page fields (present when pageType === 'definition')
+    @IsString()
+    @IsOptional()
+    term?: string;
+
+    @IsString()
+    @IsOptional()
+    definition?: string;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    visualCues?: string[];
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    toneCues?: string[];
+
+    // Practice page fields (present when pageType === 'practice')
     @ValidateNested()
     @IsOptional()
-    @Type(() => DefinitionPageContentDTO)
-    definition?: DefinitionPageContentDTO;
+    @Type(() => PracticeScenarioDTO)
+    scenario?: PracticeScenarioDTO;
 
     @ValidateNested()
     @IsOptional()
-    @Type(() => PracticePageContentDTO)
-    practice?: PracticePageContentDTO;
+    @Type(() => AudioSampleDTO)
+    audioSample?: AudioSampleDTO;
+
+    @IsString()
+    @IsOptional()
+    transcript?: string;
+
+    @ValidateNested()
+    @IsOptional()
+    @Type(() => AppropriateResponseDTO)
+    appropriateResponse?: AppropriateResponseDTO;
 }
 
 // Main Lesson DTO
 export class CreateLessonDTO {
     @IsString()
-    lessonId: string; // e.g., "sarcasm-101"
+    lessonId: string;
 
     @IsInt()
     @Min(1)
@@ -107,6 +104,10 @@ export class CreateLessonDTO {
 
     @IsString()
     lessonName: string;
+
+    @IsString()
+    @IsOptional()
+    difficulty?: string;
 
     @IsArray()
     @ValidateNested({ each: true })
