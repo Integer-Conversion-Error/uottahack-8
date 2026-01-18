@@ -16,7 +16,6 @@ interface LessonPageProps {
   }>;
 }
 
-<<<<<<< HEAD
 const LESSON_MAP: Record<string, any> = {
   [EmpathyLesson.lessonId]: EmpathyLesson,
   [SarcasmLesson.lessonId]: SarcasmLesson,
@@ -44,8 +43,6 @@ function ProgressBar({ currentStep, totalSteps }: { currentStep: number; totalSt
   );
 }
 
-=======
->>>>>>> f50b910ab73390baf5737bb6f05001828d21ad97
 export default function LessonPage({ params }: LessonPageProps) {
   // Unwrap params using React.use()
   const { lessonId } = use(params);
