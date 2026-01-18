@@ -84,7 +84,12 @@ const LessonPageSchema = new Schema({
     scenario: ScenarioSchema,
     audioSample: AudioSampleSchema,
     transcript: String,
-    appropriateResponse: AppropriateResponseSchema
+    appropriateResponse: AppropriateResponseSchema,
+    difficulty: {
+        type: String,
+        enum: ['beginner', 'intermediate', 'advanced'],
+        default: 'beginner'
+    }
 }, { _id: false });
 
 const LessonSchema = new Schema<ILesson>({

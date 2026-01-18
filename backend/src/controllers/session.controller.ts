@@ -192,7 +192,7 @@ export const completeSession = async (req: Request, res: Response) => {
     let filePath = '';
     try {
         const { sessionId } = req.params;
-        const { transcript, presageData, practiceIndex, scenarioContext } = req.body;
+        const { transcript, presageData, practiceIndex, scenarioContext, difficulty } = req.body;
 
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'Video file is required' });
@@ -212,7 +212,8 @@ export const completeSession = async (req: Request, res: Response) => {
         console.log('ElevenLabs transcript:', elevenLabsTranscript);
 
         // Run AI analysis (Gemini analyzes video for facial/body/tone feedback)
-        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);
+        // Passes difficulty (defaulting to 'beginner' if missing)
+        const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, difficulty || 'beginner', presageData);
 
         const practiceResult = {
             practiceIndex: parseInt(practiceIndex) || session.practices.length,

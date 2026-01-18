@@ -166,6 +166,7 @@ export default function LessonPage({ params }: LessonPageProps) {
       "promptContext",
       currentPage.scenario?.context || "Social interaction practice",
     );
+    formData.append("difficulty", currentPage.difficulty || "beginner");
 
     try {
       const res = await fetch(
@@ -260,19 +261,20 @@ export default function LessonPage({ params }: LessonPageProps) {
               />
               {currentPageData.pageType === "definition" ? (
                 <DefinitionPage
-                  term={currentPageData.term}
-                  definition={currentPageData.definition}
-                  visualCues={currentPageData.visualCues}
-                  toneCues={currentPageData.toneCues}
+                  term={currentPageData.term || ""}
+                  definition={currentPageData.definition || ""}
+                  visualCues={currentPageData.visualCues || []}
+                  toneCues={currentPageData.toneCues || []}
                   onNext={handleNext}
+                  onBack={handleBack}
                   currentStep={pageIndex + 1}
                   totalSteps={lessonData.pages.length + 1}
                 />
               ) : (
                 <PracticePage
-                  scenario={currentPageData.scenario}
-                  audioSample={currentPageData.audioSample}
-                  transcript={currentPageData.transcript}
+                  scenario={currentPageData.scenario || { context: "", description: "" }}
+                  audioSample={currentPageData.audioSample || { url: "", duration: 0 }}
+                  transcript={currentPageData.transcript || ""}
                   onNext={handlePracticeSubmit}
                   onBack={handleBack}
                   currentStep={pageIndex + 1}

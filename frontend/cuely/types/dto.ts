@@ -27,6 +27,7 @@ export interface AppropriateResponseDTO {
 export interface LessonPageDTO {
     _id?: string;
     pageType: 'definition' | 'practice';
+    difficulty?: string;
     pageOrder: number;
 
     // Definition page fields (present when pageType === 'definition')

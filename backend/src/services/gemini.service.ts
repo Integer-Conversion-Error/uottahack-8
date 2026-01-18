@@ -69,7 +69,7 @@ export class GeminiService {
     }
   }
 
-  static async analyzeVideo(filePath: string, tone: string, promptContext: string, presageData?: any): Promise<any> {
+  static async analyzeVideo(filePath: string, tone: string, promptContext: string, difficulty: string = 'beginner', presageData?: any): Promise<any> {
     try {
       // Read video file as Base64
       const videoBuffer = fs.readFileSync(filePath);
@@ -77,73 +77,83 @@ export class GeminiService {
 
       console.log(`Read video file: ${filePath}, size: ${videoBuffer.length} bytes`);
 
+      let systemPrompt = "";
+
+      // SELECT PROMPT BASED ON DIFFICULTY
+      switch (difficulty.toLowerCase()) {
+        case 'beginner':
+          systemPrompt = `
+            You are a SUPPORTIVE and ENCOURAGING social skills teacher. Your student is a beginner.
+            Focus on the basics. Be lenient with grading.
+            
+            GUIDING PRINCIPLES:
+            - Award "thumbs-up" if the user makes a GENUINE ATTEMPT and gets the general vibe right, even if it's not perfect.
+            - Only give "thumbs-down" for complete mismatches, total lack of effort, or very obvious errors.
+            - Use encouraging language in feedback (e.g., "Good try," "You're on the right track," "Next time try...").
+            - Ignore minor imperfections in micro-expressions or fleeting eye contact breaks.
+          `;
+          break;
+
+        case 'intermediate':
+          systemPrompt = `
+            You are a PROFESSIONAL social skills coach. Be FIRM but FAIR.
+            Expect competency but allow for minor imperfections if the core message and tone are correct.
+            
+            GUIDING PRINCIPLES:
+            - Award "thumbs-up" for solid, competent performance that would be acceptable in a casual setting.
+            - Award "thumbs-down" for clear mistakes, obvious mismatches, or lack of effort.
+            - Feedback should be constructive and specific, pointing out exactly what to polish.
+            - Don't nitpick micro-mismatches unless they confuse the message.
+          `;
+          break;
+
+        case 'advanced':
+        default:
+          systemPrompt = `
+            You are an EXTREMELY STRICT and HARSH social skills evaluator. You have VERY HIGH standards.
+            Most responses should receive "thumbs-down" unless they are genuinely excellent. Be BRUTALLY honest.
+            
+            GUIDING PRINCIPLES:
+            - Award "thumbs-up" ONLY for genuinely impressive, professional-level performance.
+            - "thumbs-down" should be the default for any slight mismatch or imperfection.
+            - Nitpick EVERYTHING: micro-expressions, split-second eye contact breaks, slight tonal variances.
+            - Sugar-coating helps no one.
+          `;
+          break;
+      }
+
       let prompt = `
-          You are an EXTREMELY STRICT and HARSH social skills evaluator. You have VERY HIGH standards. Most responses should receive "thumbs-down" unless they are genuinely excellent. Be BRUTALLY honest - sugar-coating helps no one.
+          ${systemPrompt}
           
           Context:
           - Target Tone/Emotion: "${tone}"
-          - Situation they are responding to: "${promptContext}"`;
+          - Situation they are responding to: "${promptContext}"
+          - Difficulty Level: ${difficulty}
+      `;
 
       if (presageData) {
         prompt += `\n          - Supplementary Biometric Data (Presage): ${JSON.stringify(presageData)}`;
       }
 
+      console.log(`[DEBUG] Analyzing Video with Difficulty: ${difficulty}`);
+      console.log(`[DEBUG] Generated Prompt Preview:\n${prompt.substring(0, 500)}...`);
+
       prompt += `
           
-          CRITICAL: You are NOT here to be nice. You are here to make them BETTER. If something is even slightly off, call it out. Award "thumbs-up" ONLY for genuinely impressive, professional-level performance.
+          CRITICAL: Grade the user on these 5 areas according to the "${difficulty}" persona defined above:
 
-          Grade the user on these 5 areas. Be MERCILESS:
+          1. FACIAL EXPRESSION
+          2. EYE CONTACT
+          3. BODY LANGUAGE
+          4. VOCAL TONE
+          5. CONTENT
 
-          1. FACIAL EXPRESSION - Standards are HIGH:
-             - Does their face PERFECTLY match "${tone}"? Even slight mismatch = thumbs-down
-             - Eyebrows must be positioned EXACTLY right for the emotion
-             - Eyes must show GENUINE emotion - any hint of fakeness = fail
-             - Smiles must be authentic with crow's feet - forced smiles = thumbs-down
-             - Micro-expressions that contradict the intended emotion = fail
-             - Face frozen or stiff = immediate thumbs-down
-             - Over-acting or exaggerated = thumbs-down
+          STRICTNESS GUIDE for "${difficulty}":
+          - "thumbs-up": ${difficulty === 'beginner' ? 'Good effort, general vibe match.' : difficulty === 'intermediate' ? 'Competent execution.' : 'Flawless perfection.'}
+          - "thumbs-sideways": ${difficulty === 'beginner' ? 'Confusing or low effort.' : difficulty === 'intermediate' ? 'Noticeable flaws.' : 'Mediocre or average.'}
+          - "thumbs-down": ${difficulty === 'beginner' ? 'Completely wrong.' : difficulty === 'intermediate' ? 'Clear failure.' : 'Any imperfection.'}
 
-          2. EYE CONTACT - Must be PERFECT:
-             - Looking away even briefly at wrong moments = thumbs-down
-             - Excessive blinking = nervous = thumbs-down
-             - Not enough blinking = unsettling = thumbs-down  
-             - Darting eyes = thumbs-down
-             - Looking down while speaking = submissive = thumbs-down
-             - Breaking eye contact at emotional peaks = fail
-
-          3. BODY LANGUAGE - Professional standards:
-             - Closed posture (crossed arms, hunched) = immediate thumbs-down
-             - Tense shoulders = nervous = thumbs-down
-             - Frozen hands or fidgeting = thumbs-down
-             - Nervous ticks (face touching, hair playing) = thumbs-down
-             - Wrong head position for context = thumbs-down
-             - Any distracting movement = thumbs-down
-
-          4. VOCAL TONE - Must match emotion EXACTLY:
-             - Voice doesn't match "${tone}" = immediate thumbs-down
-             - Too fast = nervous = thumbs-down
-             - Too slow = boring/disengaged = thumbs-down
-             - Monotone delivery = thumbs-down
-             - Too quiet = lacks confidence = thumbs-down
-             - Too loud = aggressive = thumbs-down
-             - ANY filler words (um, uh, like, you know) = thumbs-down
-             - Fake or performative tone = thumbs-down
-
-          5. CONTENT - What they SAID must be PERFECT:
-             - Did they actually address: "${promptContext}"?
-             - Is their response EXACTLY what the situation calls for?
-             - Any irrelevant or off-topic content = thumbs-down
-             - Wrong message for the situation = thumbs-down
-             - Missing key elements = thumbs-down
-             - Would this response work in REAL LIFE? If not = thumbs-down
-             - Is the wording natural and appropriate? Awkward phrasing = thumbs-down
-
-          STRICT SCORING (thumbs-up should be RARE):
-          - "thumbs-up": EXCEPTIONAL. Professional-level. Almost flawless. Very few people achieve this.
-          - "thumbs-sideways": Mediocre. Has clear issues but not terrible. This is the MOST COMMON score.
-          - "thumbs-down": Problematic. Significant issues. Needs serious practice. Don't hesitate to use this.
-
-          For EACH category, provide 40-50 words of BLUNT, SPECIFIC feedback. Don't be diplomatic - be direct about what's wrong and exactly how to fix it.
+          For EACH category, provide 40-50 words of specific feedback matching your persona (Supportive vs Professional vs Harsh).
 
           Return the result ONLY as a valid JSON object with the following schema:
           {
@@ -155,6 +165,7 @@ export class GeminiService {
             "content": { "score": "string", "feedback": "string" }
           }
         `;
+
 
       let retries = 3;
       while (retries > 0) {
@@ -253,7 +264,7 @@ export class GeminiService {
   }
   static async generateExampleModules(lessonId: string, lessonName: string, metadata: any, count: number, difficulty: string): Promise<any[]> {
     try {
-      console.log(`Generating ${count} example modules for lesson: ${lessonName}`);
+      console.log(`Generating ${count} example modules for lesson: ${lessonName} `);
 
       const practicePageSchema = {
         type: "ARRAY",
@@ -261,6 +272,7 @@ export class GeminiService {
           type: "OBJECT",
           properties: {
             pageType: { type: "STRING", enum: ["practice"] },
+            difficulty: { type: "STRING", enum: ["beginner", "intermediate", "advanced"] },
             pageOrder: { type: "INTEGER" },
             scenario: {
               type: "OBJECT",
@@ -291,20 +303,21 @@ export class GeminiService {
               required: ["description", "keyElements"]
             }
           },
-          required: ["pageType", "scenario", "audioSample", "transcript", "appropriateResponse"]
+          required: ["pageType", "difficulty", "scenario", "audioSample", "transcript", "appropriateResponse"]
         }
       };
 
       const prompt = `
         You are an expert educational content creator for a social skills learning app.
-        Generate ${count} NEW practice scenarios (modules) for the lesson "${lessonName}".
-        
+        Generate ${count} NEW practice scenarios(modules) for the lesson "${lessonName}".
+
         Metadata: ${JSON.stringify(metadata)}
-        Difficulty: ${difficulty}
-        
-        CRITICAL: 
-        1. Ensure "transcript" matches the "tonalPrompt" in style.
-        2. Make scenarios realistic and challenging based on valid social dynamics.
+      Difficulty: ${difficulty}
+
+      CRITICAL:
+      1. Set "difficulty" to "${difficulty}" for ALL generated modules.
+        2. Ensure "transcript" matches the "tonalPrompt" in style.
+        3. Make scenarios realistic and challenging based on valid social dynamics.
       `;
 
       let retries = 5;
@@ -427,6 +440,7 @@ export class GeminiService {
               type: "OBJECT",
               properties: {
                 pageType: { type: "STRING", enum: ["definition", "practice"] },
+                difficulty: { type: "STRING", enum: ["beginner", "intermediate", "advanced"] },
                 pageOrder: { type: "INTEGER" },
                 term: { type: "STRING" },
                 definition: { type: "STRING" },
@@ -482,6 +496,7 @@ export class GeminiService {
            
         2. For "practice" pages (All subsequent pages):
            - "pageType" MUST be "practice".
+           - "difficulty" MUST be "${difficulty}".
            - "scenario", "audioSample", "transcript", "appropriateResponse" MUST be filled.
            - "visualCues" and "toneCues" MUST be empty arrays [].
            - "term" and "definition" MUST be empty strings.
