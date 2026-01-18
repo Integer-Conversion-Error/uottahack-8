@@ -1,15 +1,6 @@
 import { Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs';
 import { ElevenLabsService } from '../services/elevenlabs.service';
 import { GetLessonAudioDTO } from '../dtos/generation.dto';
-
-const AUDIO_DIR = path.join(__dirname, '../../public/audio');
-
-// Ensure audio directory exists
-if (!fs.existsSync(AUDIO_DIR)) {
-    fs.mkdirSync(AUDIO_DIR, { recursive: true });
-}
 
 export const getLessonAudio = async (req: Request, res: Response) => {
     try {
@@ -21,59 +12,39 @@ export const getLessonAudio = async (req: Request, res: Response) => {
             return;
         }
 
-        // Lookup lesson data from file if text is missing
+        // Lookup lesson data from MongoDB if text is missing
         if (!text) {
             try {
-                // Adjust path based on deployment/dev environment.
-                // Assuming standard repo structure: backend/src/controllers -> frontend/cuely/data
-                const dataDir = path.join(__dirname, '../../../frontend/cuely/data');
+                const Lesson = require('../models/Lesson').default;
+                const lessonDoc = await Lesson.findOne({ lessonId });
 
-                if (fs.existsSync(dataDir)) {
-                    const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.json'));
-
-                    let lessonData = null;
-                    for (const file of files) {
-                        try {
-                            const content = JSON.parse(fs.readFileSync(path.join(dataDir, file), 'utf-8'));
-                            if (content.lessonId === lessonId) {
-                                lessonData = content;
-                                break;
-                            }
-                        } catch (e) {
-                            console.warn(`Failed to parse lesson file ${file}`, e);
-                        }
-                    }
-
-                    if (!lessonData) {
-                        // Fallback: If not found in file (maybe implied lessonId mismatch?), error out
-                        // unless we strictly require text.
-                        // For now, if text is missing AND we can't find the lesson, it's an error.
-                        res.status(404).json({ message: 'Lesson data not found. Please provide text explicitly.' });
-                        return;
-                    }
-
-                    const page = lessonData.pages ? lessonData.pages.find((p: any) => p.pageOrder === pageOrder) : null;
-                    if (!page) {
-                        res.status(404).json({ message: 'Page not found in lesson' });
-                        return;
-                    }
-
-                    text = page.transcript;
-                    tonalPrompt = page.audioSample?.tonalPrompt;
-
-                    if (!text) {
-                        res.status(400).json({ message: 'Page has no transcript to speak' });
-                        return;
-                    }
-                } else {
-                    console.warn(`Data directory not found at ${dataDir}`);
-                    res.status(500).json({ message: 'Server configuration error: Data directory missing' });
+                if (!lessonDoc) {
+                    res.status(404).json({ message: 'Lesson not found' });
                     return;
                 }
 
-            } catch (err) {
-                console.error("Error looking up lesson data:", err);
-                res.status(500).json({ message: 'Failed to retrieve lesson data from backend' });
+                const page = lessonDoc.pages ? lessonDoc.pages.find((p: any) => p.pageOrder === pageOrder) : null;
+                if (!page) {
+                    res.status(404).json({ message: 'Page not found in lesson' });
+                    return;
+                }
+
+                // Extract text and tonalPrompt from nested DTO structure
+                if (page.pageType === 'definition' && page.definition) {
+                    text = page.definition.transcript || page.definition.definition; // Fallback to definition if no transcript
+                    tonalPrompt = page.definition.tonalPrompt;
+                } else if (page.pageType === 'practice' && page.practice) {
+                    text = page.practice.transcript;
+                    tonalPrompt = page.practice.audioSample?.tonalPrompt;
+                }
+
+                if (!text) {
+                    res.status(400).json({ message: 'Page has no transcript to speak' });
+                    return;
+                }
+            } catch (e) {
+                console.error('Error fetching lesson from MongoDB:', e);
+                res.status(500).json({ message: 'Failed to fetch lesson data' });
                 return;
             }
         }

@@ -53,25 +53,52 @@ export class PracticeAnalysisDTO {
 }
 
 export class SubmitPracticeResultDTO {
+    @IsOptional()
+    @Type(() => Number)
     @IsInt()
-    practiceIndex: number;
+    practiceIndex?: number;
 
     @IsString()
-    scenarioContext: string;
+    @IsOptional()
+    scenarioContext?: string;
 
     @IsString()
-    transcript: string; // User's spoken text
+    @IsOptional()
+    transcript?: string; // User's spoken text
 
     @IsString()
     @IsOptional()
     videoUrl?: string;
 
+    @IsOptional()
+    @Type(() => Number)
     @IsNumber()
-    durationSeconds: number;
+    durationSeconds?: number;
 
+    @IsOptional()
     @ValidateNested()
     @Type(() => PracticeAnalysisDTO)
-    analysis: PracticeAnalysisDTO;
+    analysis?: PracticeAnalysisDTO;
+
+    @IsString()
+    @IsOptional()
+    targetTone?: string;
+
+    @IsString()
+    @IsOptional()
+    promptContext?: string;
+}
+
+export class AnalyzeVideoDTO {
+    @IsString()
+    tone: string;
+
+    @IsString()
+    context: string;
+
+    @IsOptional()
+    @IsString()
+    presageData?: string; // Stringified JSON from frontend
 }
 
 export class SessionResponseDTO {
