@@ -4,6 +4,7 @@ import * as TTSController from '../controllers/tts.controller';
 import * as AudioController from '../controllers/audio.controller';
 import * as sessionController from '../controllers/session.controller';
 import * as lessonController from '../controllers/lesson.controller';
+import * as AchievementController from '../controllers/achievement.controller';
 import Session from '../models/Session';
 import { validationMiddleware } from '../middleware/validation.middleware';
 import { CreateSessionDTO, SubmitPracticeResultDTO, AnalyzeVideoDTO } from '../dtos/session.dto';
@@ -28,6 +29,11 @@ router.get('/debug/sessions', async (req, res) => {
 // Lesson Routes
 router.get('/lessons', lessonController.getAllLessons);
 router.get('/lessons/:lessonId', lessonController.getLessonById);
+
+// Achievement Routes
+router.get('/achievements', AchievementController.getAllAchievements);
+router.get('/achievements/user/:userId', AchievementController.getUserAchievements);
+router.post('/achievements/user/:userId/check', AchievementController.checkAchievements);
 
 // Analysis Routes - Image upload handled by multer middleware in controller export, but applied here
 router.post('/analyze/video', AnalysisController.upload.single('video'), validationMiddleware(AnalyzeVideoDTO), AnalysisController.analyzeVideo);

@@ -27,8 +27,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     const menuItems = [
         { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
         { name: 'Lessons', icon: BookOpen, href: '/lessons' },
-        { name: 'Progress', icon: TrendingUp, href: '#' },
-        { name: 'Achievements', icon: Award, href: '#' },
+        // { name: 'Progress', icon: TrendingUp, href: '#' },
+        { name: 'Achievements', icon: Award, href: '/achievements' },
     ];
 
     return (
