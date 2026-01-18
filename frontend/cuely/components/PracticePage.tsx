@@ -14,7 +14,7 @@ interface PracticePageProps {
   audioSample: {
     url: string;
     duration: number;
-    tonalPrompt: string;
+    tonalPrompt?: string;
     imageUrl?: string;
   };
   transcript: string;

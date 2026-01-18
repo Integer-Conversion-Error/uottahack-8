@@ -16,14 +16,7 @@ interface LessonPageProps {
   }>;
 }
 
-const LESSON_MAP: Record<string, any> = {
-  [EmpathyLesson.lessonId]: EmpathyLesson,
-  [SarcasmLesson.lessonId]: SarcasmLesson,
-  'empathy-beg-001': EmpathyLesson, // Fallback ID matching file
-  'lesson-sarcasm-001': SarcasmLesson // Fallback ID matching file
-};
-
-const getLesson = (id: string) => LESSON_MAP[id] || null;
+import { CreateLessonDTO, PageType } from '@/types/dto';
 
 // Progress Bar Component
 function ProgressBar({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
@@ -47,7 +40,7 @@ export default function LessonPage({ params }: LessonPageProps) {
   // Unwrap params using React.use()
   const { lessonId } = use(params);
 
-  const [lessonData, setLessonData] = useState<any>(null);
+  const [lessonData, setLessonData] = useState<CreateLessonDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState<number>(-1);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -78,98 +71,100 @@ export default function LessonPage({ params }: LessonPageProps) {
   }, [lessonId]);
 
   // Count total practice pages
-  const totalPractices = lessonData?.pages.filter((p: any) => p.pageType === 'practice').length || 0;
+  const totalPractices = lessonData?.pages.filter(p => p.pageType === 'practice').length || 0;
 
   useEffect(() => {
     // Only run animation if we have data and are in loading state
     if (pageIndex === -1 && lessonData) {
-       if (titleRef.current && descriptionRef.current) {
-          const tl = gsap.timeline({
-            onComplete: () => {
-              setTimeout(() => setPageIndex(0), 1000);
-            }
-          });
-          tl.to(titleRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' })
-            .to(descriptionRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' }, '-=0.3');
-          return () => { tl.kill(); };
-       } else {
-           setTimeout(() => setPageIndex(0), 1000);
-       }
+      if (titleRef.current && descriptionRef.current) {
+        const tl = gsap.timeline({
+          onComplete: () => {
+            setTimeout(() => setPageIndex(0), 1000);
+          }
+        });
+        tl.to(titleRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' })
+          .to(descriptionRef.current, { opacity: 1, duration: 1, ease: 'power2.inOut' }, '-=0.3');
+        return () => { tl.kill(); };
+      } else {
+        setTimeout(() => setPageIndex(0), 1000);
+      }
     }
   }, [pageIndex, lessonData]);
 
   // Start session once when lesson loads (not per practice)
   useEffect(() => {
-      if (lessonData && !sessionId && pageIndex >= 0) {
-          startSession();
-      }
+    if (lessonData && !sessionId && pageIndex >= 0) {
+      startSession();
+    }
   }, [lessonData, pageIndex]);
 
   const startSession = async () => {
-      try {
-          const res = await fetch('http://localhost:4000/api/sessions/start', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  userId: '65a000000000000000000000', // Mock User ID
-                  lessonId: lessonId,
-                  difficulty: 'beginner',
-                  title: lessonData.lessonName || 'Practice Session',
-                  totalPractices: totalPractices
-              })
-          });
-          const data = await res.json();
-          if (data.success) {
-              setSessionId(data.data.sessionId);
-              console.log('Session started:', data.data.sessionId, 'Total practices:', totalPractices);
-          }
-      } catch (err) {
-          console.error('Failed to start session', err);
+    try {
+      const res = await fetch('http://localhost:4000/api/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: '65a000000000000000000000', // Mock User ID
+          lessonId: lessonId,
+          difficulty: 'beginner',
+          title: lessonData?.lessonName || 'Practice Session',
+          totalPractices: totalPractices
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSessionId(data.data.sessionId);
+        console.log('Session started:', data.data.sessionId, 'Total practices:', totalPractices);
       }
+    } catch (err) {
+      console.error('Failed to start session', err);
+    }
   };
 
   const handlePracticeSubmit = async (blob: Blob) => {
-      if (!sessionId) {
-          console.error("No active session ID");
-          return;
+    if (!sessionId) {
+      console.error("No active session ID");
+      return;
+    }
+    setIsSubmitting(true);
+
+    const currentPage = lessonData?.pages[pageIndex];
+    if (!currentPage) return;
+
+    const formData = new FormData();
+    formData.append('video', blob, 'practice.webm');
+    formData.append('transcript', currentPage.transcript || '');
+    formData.append('practiceIndex', String(practiceIndex));
+    formData.append('scenarioContext', currentPage.scenario?.context || '');
+    formData.append('targetTone', lessonData?.lessonName || 'Social Cue');
+    formData.append('promptContext', currentPage.scenario?.context || 'Social interaction practice');
+
+    try {
+      const res = await fetch(`http://localhost:4000/api/sessions/${sessionId}/complete`, {
+        method: 'PUT',
+        body: formData
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        console.log('Practice complete:', data.data);
+        setAnalysisResult(data.data.analysis);
+        setPracticeIndex(prev => prev + 1);
+        setShowFeedback(true);
+      } else {
+        console.error('Analysis failed:', data.message);
+        alert("Analysis failed: " + data.message);
       }
-      setIsSubmitting(true);
-
-      const currentPage = lessonData.pages[pageIndex];
-      const formData = new FormData();
-      formData.append('video', blob, 'practice.webm');
-      formData.append('transcript', currentPage.transcript || '');
-      formData.append('practiceIndex', String(practiceIndex));
-      formData.append('scenarioContext', currentPage.scenario?.context || '');
-      formData.append('targetTone', lessonData.lessonName || 'Social Cue');
-      formData.append('promptContext', currentPage.scenario?.context || 'Social interaction practice');
-
-      try {
-          const res = await fetch(`http://localhost:4000/api/sessions/${sessionId}/complete`, {
-              method: 'PUT',
-              body: formData
-          });
-          const data = await res.json();
-
-          if (data.success) {
-              console.log('Practice complete:', data.data);
-              setAnalysisResult(data.data.analysis);
-              setPracticeIndex(prev => prev + 1);
-              setShowFeedback(true);
-          } else {
-              console.error('Analysis failed:', data.message);
-              alert("Analysis failed: " + data.message);
-          }
-      } catch (err) {
-          console.error('Upload error:', err);
-          alert("Upload failed.");
-      } finally {
-          setIsSubmitting(false);
-      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert("Upload failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!lessonData) {
-     return <div className="min-h-screen flex items-center justify-center">Lesson not found: {lessonId}</div>;
+    return <div className="min-h-screen flex items-center justify-center">Lesson not found: {lessonId}</div>;
   }
 
   const handleNext = () => {
@@ -184,20 +179,20 @@ export default function LessonPage({ params }: LessonPageProps) {
     if (pageIndex > 0) {
       setPageIndex(pageIndex - 1);
     } else {
-       setPageIndex(-1);
+      setPageIndex(-1);
     }
   };
 
   const handleFeedbackNext = () => {
-      setShowFeedback(false);
-      setAnalysisResult(null);
-      handleNext();
+    setShowFeedback(false);
+    setAnalysisResult(null);
+    handleNext();
   };
 
   // Loading Screen - NO PROGRESS BAR
   if (pageIndex === -1) {
-       return (
-       <div className="min-h-screen flex items-center justify-center bg-[#E1D3BE]">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#E1D3BE]">
         <div className="text-center">
           <h1 ref={titleRef} className="text-6xl font-bold text-black mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]">
             Lesson {lessonData.lessonNumber}
@@ -212,35 +207,35 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   // Intercept for Feedback/Results View
   if (showFeedback && analysisResult) {
-      return (
-          <div className="h-screen flex flex-col overflow-hidden">
-            <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
-            <ResultsPage
-              analysis={analysisResult}
-              onNext={handleFeedbackNext}
-              onTryAgain={() => setShowFeedback(false)}
-              currentStep={pageIndex + 1}
-              totalSteps={lessonData.pages.length + 1}
-            />
-          </div>
-      );
+    return (
+      <div className="h-screen flex flex-col overflow-hidden">
+        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
+        <ResultsPage
+          analysis={analysisResult}
+          onNext={handleFeedbackNext}
+          onTryAgain={() => setShowFeedback(false)}
+          currentStep={pageIndex + 1}
+          totalSteps={lessonData.pages.length + 1}
+        />
+      </div>
+    );
   }
 
   // Final Completion Screen
   if (pageIndex === lessonData.pages.length) {
     return (
-        <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center flex-col gap-6 text-center p-8">
-            <h1 className="text-5xl font-bold text-[#5E7381]">Lesson Complete!</h1>
-            <p className="text-xl text-gray-700">You have completed all scenarios.</p>
-            <div className="flex gap-4 mt-8">
-                <a href="/lessons" className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm">
-                    Back to Lessons
-                </a>
-                <a href="/dashboard" className="px-8 py-3 bg-[#5E7381] text-white rounded-xl font-bold hover:bg-[#4a5c6a] transition-colors shadow-lg">
-                    Go to Dashboard
-                </a>
-            </div>
+      <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center flex-col gap-6 text-center p-8">
+        <h1 className="text-5xl font-bold text-[#5E7381]">Lesson Complete!</h1>
+        <p className="text-xl text-gray-700">You have completed all scenarios.</p>
+        <div className="flex gap-4 mt-8">
+          <a href="/lessons" className="px-8 py-3 bg-white text-[#5E7381] rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm">
+            Back to Lessons
+          </a>
+          <a href="/dashboard" className="px-8 py-3 bg-[#5E7381] text-white rounded-xl font-bold hover:bg-[#4a5c6a] transition-colors shadow-lg">
+            Go to Dashboard
+          </a>
         </div>
+      </div>
     );
   }
 
@@ -250,37 +245,31 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   if (currentPageData.pageType === 'definition') {
     return (
-      <div className="h-screen flex flex-col overflow-hidden pt-30">
-        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
-        <DefinitionPage
-          term={currentPageData.term}
-          definition={currentPageData.definition}
-          visualCues={currentPageData.visualCues}
-          toneCues={currentPageData.toneCues}
-          onNext={handleNext}
-          onBack={handleBack}
-          currentStep={pageIndex + 1}
-          totalSteps={lessonData.pages.length + 1}
-        />
-      </div>
+      <DefinitionPage
+        term={currentPageData.term || ''}
+        definition={currentPageData.definition || ''}
+        visualCues={currentPageData.visualCues || []}
+        toneCues={currentPageData.toneCues || []}
+        onNext={handleNext}
+        onBack={handleBack}
+        currentStep={pageIndex + 1}
+        totalSteps={lessonData.pages.length + 1}
+      />
     );
   }
 
-  if (currentPageData.pageType === 'practice') {
+  if (currentPageData.pageType === 'practice' && currentPageData.scenario && currentPageData.audioSample) {
     return (
-      <div className="h-screen flex flex-col overflow-hidden">
-        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
-        <PracticePage
-          scenario={currentPageData.scenario}
-          audioSample={currentPageData.audioSample}
-          transcript={currentPageData.transcript}
-          onNext={handlePracticeSubmit}
-          onBack={handleBack}
-          currentStep={pageIndex + 1}
-          totalSteps={lessonData.pages.length + 1}
-          isSubmitting={isSubmitting}
-        />
-      </div>
+      <PracticePage
+        scenario={currentPageData.scenario}
+        audioSample={currentPageData.audioSample}
+        transcript={currentPageData.transcript || ''}
+        onNext={handlePracticeSubmit}
+        onBack={handleBack}
+        currentStep={pageIndex + 1}
+        totalSteps={lessonData.pages.length + 1}
+        isSubmitting={isSubmitting}
+      />
     );
   }
 

@@ -1,17 +1,10 @@
+// Enums
 export enum PageType {
-    Loading = 'loading',
     Definition = 'definition',
     Practice = 'practice',
-    Results = 'results'
 }
 
-export interface DefinitionPageContentDTO {
-    term: string;
-    definition: string;
-    visualCues: string[];
-    toneCues: string[];
-}
-
+// Sub-types for practice pages
 export interface PracticeScenarioDTO {
     context: string;
     description: string;
@@ -30,23 +23,31 @@ export interface AppropriateResponseDTO {
     keyElements: string[];
 }
 
-export interface PracticePageContentDTO {
-    scenario: PracticeScenarioDTO;
-    audioSample: AudioSampleDTO;
-    transcript: string;
-    appropriateResponse: AppropriateResponseDTO;
-}
-
+// Flat Page structure - matches MongoDB schema exactly
 export interface LessonPageDTO {
-    pageType: PageType;
+    _id?: string;
+    pageType: 'definition' | 'practice';
     pageOrder: number;
-    definition?: DefinitionPageContentDTO;
-    practice?: PracticePageContentDTO;
+
+    // Definition page fields (present when pageType === 'definition')
+    term?: string;
+    definition?: string;
+    visualCues?: string[];
+    toneCues?: string[];
+
+    // Practice page fields (present when pageType === 'practice')
+    scenario?: PracticeScenarioDTO;
+    audioSample?: AudioSampleDTO;
+    transcript?: string;
+    appropriateResponse?: AppropriateResponseDTO;
 }
 
+// Main Lesson DTO
 export interface CreateLessonDTO {
+    _id?: string;
     lessonId: string;
     lessonNumber: number;
     lessonName: string;
+    difficulty?: string;
     pages: LessonPageDTO[];
 }
