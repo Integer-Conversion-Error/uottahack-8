@@ -48,13 +48,40 @@ export default function CreateLessonPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Redirect to the newly created lesson
-        router.push(`/lessons/${data.data.lessonId}`);
+        if (data.data && data.data.processing) {
+          // Poll for completion
+          const lessonId = data.data.lessonId;
+          const maxRetries = 300; // 10 minutes approx
+          let attempts = 0;
+
+          while (attempts < maxRetries) {
+            await new Promise(r => setTimeout(r, 2000)); // Wait 2s
+
+            try {
+              const checkRes = await fetch(`/api/lessons/${lessonId}`);
+              if (checkRes.ok) {
+                // Lesson ready!
+                router.push(`/lessons/${lessonId}`);
+                return;
+              }
+            } catch (ignore) {
+              // Ignore network glitches during polling
+            }
+            attempts++;
+          }
+          alert('Lesson generation is taking longer than expected. Please check back later.');
+          router.push('/lessons'); // Go to list
+        } else {
+          // Immediate success (e.g. appending modules or finished fast)
+          router.push(`/lessons/${data.data.lessonId}`);
+        }
       } else {
         alert('Failed to generate lesson: ' + data.message);
       }
     } catch (err) {
       console.error('Error generating lesson:', err);
+      // If SyntaxError (HTML response), it might be timeout before we fixed it, 
+      // but now with 202 it should be fast.
       alert('Failed to generate lesson. Please try again.');
     } finally {
       setIsGenerating(false);
@@ -103,8 +130,8 @@ export default function CreateLessonPage() {
                 <label
                   key={lesson.value}
                   className={`relative flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.baseLessonType === lesson.value
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
                     }`}
                 >
                   <input
@@ -178,8 +205,8 @@ export default function CreateLessonPage() {
                 <label
                   key={level.value}
                   className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all text-center ${formData.difficulty === level.value
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
                     }`}
                 >
                   <input
@@ -239,8 +266,8 @@ export default function CreateLessonPage() {
               type="submit"
               disabled={isGenerating || !formData.baseLessonType}
               className={`flex-1 px-6 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${isGenerating || !formData.baseLessonType
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-purple-500 to-purple-700 text-white hover:from-purple-600 hover:to-purple-800 shadow-lg hover:shadow-xl'
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-purple-500 to-purple-700 text-white hover:from-purple-600 hover:to-purple-800 shadow-lg hover:shadow-xl'
                 }`}
             >
               {isGenerating ? (

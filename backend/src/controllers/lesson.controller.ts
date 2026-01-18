@@ -60,6 +60,8 @@ export const getLessonById = async (req: Request, res: Response) => {
  * POST /api/lessons/generate
  * Body: { lessonName: string, count: number, difficulty: string }
  */
+const slugify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
 export const generateLessonOrModules = async (req: Request, res: Response) => {
     try {
         const { lessonName, count = 3, difficulty = 'Beginner' } = req.body;
@@ -76,84 +78,94 @@ export const generateLessonOrModules = async (req: Request, res: Response) => {
             lessonName: { $regex: new RegExp(`^${lessonName}$`, 'i') }
         });
 
-        if (existingLesson) {
-            // Branch A: Lesson exists, append new modules
-            console.log(`Lesson "${lessonName}" exists. Generating ${count} new modules.`);
+        const lessonId = existingLesson ? existingLesson.lessonId : slugify(lessonName);
 
-            const metadata = {
-                term: existingLesson.lessonName,
-                definition: (existingLesson.pages.find((p: any) => p.pageType === 'definition') as any)?.definition || ''
-            };
+        // Respond immediately to avoid timeout
+        res.status(202).json({
+            success: true,
+            message: 'Lesson generation started',
+            data: { lessonId, processing: true }
+        });
 
-            const newModules = await GeminiService.generateExampleModules(
-                existingLesson.lessonId,
-                existingLesson.lessonName,
-                metadata,
-                count,
-                difficulty
-            );
+        // Background processing
+        (async () => {
+            try {
+                if (existingLesson) {
+                    // Branch A: Lesson exists, append new modules
+                    console.log(`[Background] Lesson "${lessonName}" exists. Generating ${count} new modules.`);
 
-            // Validate each module (simplified check)
-            const validatePage = ajv.compile((lessonSchema as any).definitions.practicePage);
-            for (const mod of newModules) {
-                if (!validatePage(mod)) {
-                    console.warn('Module validation failed:', validatePage.errors);
+                    const metadata = {
+                        term: existingLesson.lessonName,
+                        definition: (existingLesson.pages.find((p: any) => p.pageType === 'definition') as any)?.definition || ''
+                    };
+
+                    const newModules = await GeminiService.generateExampleModules(
+                        existingLesson.lessonId,
+                        existingLesson.lessonName,
+                        metadata,
+                        count,
+                        difficulty
+                    );
+
+                    // Validate each module (simplified check)
+                    const validatePage = ajv.compile((lessonSchema as any).definitions.practicePage);
+                    for (const mod of newModules) {
+                        if (!validatePage(mod)) {
+                            console.warn('Module validation failed:', validatePage.errors);
+                        }
+                    }
+
+                    // Assign pageOrder
+                    const maxOrder = existingLesson.pages.reduce((max: number, p: any) => Math.max(max, p.pageOrder || 0), 0);
+                    newModules.forEach((mod, i) => {
+                        mod.pageOrder = maxOrder + 1 + i;
+                    });
+
+                    // Push to lesson
+                    existingLesson.pages.push(...newModules);
+                    await existingLesson.save();
+                    console.log(`[Background] Added modules to lesson "${existingLesson.lessonName}"`);
+
+                } else {
+                    // Branch B: Lesson does not exist, create a new one
+                    console.log(`[Background] Lesson "${lessonName}" not found. Generating new lesson.`);
+
+                    const lessonData = await GeminiService.generateFullLesson(lessonName, count, difficulty);
+
+                    if (!lessonData) {
+                        console.error('[Background] Failed to generate lesson data');
+                        return;
+                    }
+
+                    // Override lessonId with our deterministic one
+                    lessonData.lessonId = lessonId;
+
+                    // Assign lessonNumber (auto-increment) and difficulty
+                    const maxLesson = await Lesson.findOne().sort({ lessonNumber: -1 });
+                    lessonData.lessonNumber = (maxLesson?.lessonNumber || 0) + 1;
+                    lessonData.difficulty = difficulty.toLowerCase();
+
+                    // Use findOneAndUpdate with upsert to handle duplicate lessonId gracefully
+                    const newLesson = await Lesson.findOneAndUpdate(
+                        { lessonId: lessonData.lessonId },
+                        lessonData,
+                        { upsert: true, new: true, setDefaultsOnInsert: true }
+                    );
+
+                    console.log(`[Background] Saved/updated lesson in database: ${newLesson.lessonId}`);
                 }
+            } catch (bgError) {
+                console.error('[Background] Error generating lesson/modules:', bgError);
             }
+        })();
 
-            // Assign pageOrder
-            const maxOrder = existingLesson.pages.reduce((max: number, p: any) => Math.max(max, p.pageOrder || 0), 0);
-            newModules.forEach((mod, i) => {
-                mod.pageOrder = maxOrder + 1 + i;
-            });
-
-            // Push to lesson
-            existingLesson.pages.push(...newModules);
-            await existingLesson.save();
-
-            return res.json({
-                success: true,
-                message: `Added ${newModules.length} new modules to lesson "${existingLesson.lessonName}"`,
-                data: existingLesson
-            });
-        } else {
-            // Branch B: Lesson does not exist, create a new one
-            console.log(`Lesson "${lessonName}" not found. Generating new lesson.`);
-
-            const lessonData = await GeminiService.generateFullLesson(lessonName, count, difficulty);
-
-            if (!lessonData) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'Failed to generate lesson data'
-                });
-            }
-
-            // Assign lessonNumber (auto-increment) and difficulty
-            const maxLesson = await Lesson.findOne().sort({ lessonNumber: -1 });
-            lessonData.lessonNumber = (maxLesson?.lessonNumber || 0) + 1;
-            lessonData.difficulty = difficulty.toLowerCase();
-
-            // Use findOneAndUpdate with upsert to handle duplicate lessonId gracefully
-            const newLesson = await Lesson.findOneAndUpdate(
-                { lessonId: lessonData.lessonId },
-                lessonData,
-                { upsert: true, new: true, setDefaultsOnInsert: true }
-            );
-
-            console.log(`Saved/updated lesson in database: ${newLesson.lessonId}`);
-
-            return res.json({
-                success: true,
-                message: `Created new lesson "${lessonData.lessonName}"`,
-                data: newLesson
+    } catch (error) {
+        console.error('Error initiating lesson generation:', error);
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to initiate lesson generation'
             });
         }
-    } catch (error) {
-        console.error('Error generating lesson/modules:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to generate lesson or modules'
-        });
     }
 };

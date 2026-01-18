@@ -63,7 +63,7 @@ export class GeminiService {
       `;
 
       const result = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
+        model: "gemini-3-flash-preview",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       });
 
@@ -200,7 +200,7 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-3-pro-preview", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
+            model: "gemini-3-flash-preview", // Updated to a model known to support this feature if needed, or stick to what works. Using 2.0-flash as it is robust for video.
             contents: [
               {
                 parts: [
@@ -368,7 +368,7 @@ export class GeminiService {
       while (retries > 0) {
         try {
           const result = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3-flash-preview",
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             config: {
               responseMimeType: "application/json",
@@ -406,7 +406,7 @@ export class GeminiService {
         console.warn("Could not load ElevenLabsService, audio generation will be skipped.", e);
       }
 
-      await Promise.all(modules.map(async (mod, i) => {
+      for (const [i, mod] of modules.entries()) {
         // 1. Audio
         if (mod.transcript && mod.audioSample && ElevenLabsService) {
           try {
@@ -456,7 +456,7 @@ export class GeminiService {
             mod.scenario.imageUrl = "https://placehold.co/600x400/E1D3BE/5E7381?text=Image+Unavailable";
           }
         }
-      }));
+      }
 
       return modules;
     } catch (error) {
@@ -585,7 +585,7 @@ export class GeminiService {
         console.warn("Could not load ElevenLabsService", e);
       }
 
-      await Promise.all(lessonData.pages.map(async (page: any, i: number) => {
+      for (const [i, page] of lessonData.pages.entries()) {
         const lessonId = lessonData.lessonId || "temp_lesson";
 
         // ENFORCE Page Order
@@ -639,7 +639,7 @@ export class GeminiService {
             }
           }
         }
-      }));
+      }
 
       return lessonData;
     } catch (error) {

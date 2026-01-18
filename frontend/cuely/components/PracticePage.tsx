@@ -42,7 +42,7 @@ export default function PracticePage({
   const [isRecording, setIsRecording] = useState(false);
   const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   // Refs for GSAP animations
   const containerRef = useRef<HTMLDivElement>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
@@ -104,10 +104,10 @@ export default function PracticePage({
     };
   }, []);
 
- 
+
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="h-screen flex flex-col overflow-hidden bg-[#E1D3BE]"
     >
@@ -116,7 +116,7 @@ export default function PracticePage({
         <div className="max-w-6xl w-full h-full flex flex-col">
           <div className="pt-4 grid grid-cols-2 gap-8 h-full ">
             {/* Left Column - Scenario Context */}
-            <div 
+            <div
               ref={leftColumnRef}
               className="flex flex-col justify-center bg-white p-8 rounded-2xl shadow-sm opacity-0 transform-gpu will-change-transform"
             >
@@ -139,7 +139,7 @@ export default function PracticePage({
                   <div className="mb-4 rounded-xl overflow-hidden shadow-sm">
                     <img
                       /* @ts-ignore */
-                      src={safeScenario.imageUrl.startsWith('http') ? safeScenario.imageUrl : `/api${safeScenario.imageUrl}`}
+                      src={safeScenario.imageUrl}
                       alt="Scenario visualization"
                       className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
                     />
@@ -157,13 +157,13 @@ export default function PracticePage({
             </div>
 
             {/* Right Column - Interaction */}
-            <div 
+            <div
               ref={rightColumnRef}
               className="flex flex-col bg-white p-8 rounded-2xl shadow-sm relative overflow-hidden opacity-0 transform-gpu will-change-transform"
             >
               {/* Listen Phase */}
               {practicePhase === 'listen' && (
-                <div 
+                <div
                   ref={listenPhaseRef}
                   className="flex-1 flex flex-col justify-center items-center text-center"
                 >
@@ -206,7 +206,7 @@ export default function PracticePage({
 
                     <audio
                       id="audio-element"
-                      src={audioSample.url.startsWith('http') ? audioSample.url : `/api${audioSample.url}`}
+                      src={audioSample.url}
                       onEnded={() => setIsPlaying(false)}
                       onPause={() => setIsPlaying(false)}
                       onPlay={() => setIsPlaying(true)}
@@ -225,7 +225,7 @@ export default function PracticePage({
 
               {/* Respond Phase */}
               {practicePhase === 'respond' && (
-                <div 
+                <div
                   ref={respondPhaseRef}
                   className="flex-1 flex flex-col h-full"
                 >
@@ -292,7 +292,7 @@ export default function PracticePage({
           </div>
 
           {/* Global Navigation */}
-          <div 
+          <div
             ref={buttonsRef}
             className="flex justify-between items-center mt-6 opacity-0 transform-gpu will-change-transform"
           >
