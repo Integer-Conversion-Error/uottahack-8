@@ -24,8 +24,8 @@ export default function LessonsPage() {
     <div className="p-10">
       <div className="max-w-6xl mx-auto">
         <header className="mb-10 text-center">
-            <h1 className="text-4xl font-bold mb-4 text-white">Explore Lessons</h1>
-            <p className="text-[#5E7381] max-w-2xl mx-auto text-xl font-medium">
+            <h1 className="text-4xl font-bold mb-4 text-black">Explore Lessons</h1>
+            <p className="text-black max-w-2xl mx-auto text-xl">
                 Browse our library of social scenarios designed to help you master nuanced interactions.
             </p>
         </header>
@@ -47,10 +47,10 @@ export default function LessonsPage() {
                   <p className="text-white text-sm line-clamp-3">{lesson.description}</p>
               </div>
               
-              <div className="mt-auto pt-4 border-t border-gray-50">
+              <div className="mt-auto pt-4 border-t border-white">
                   <Link 
                     href={`/lessons/${lesson.id}`} 
-                    className="block w-full text-center py-2.5 bg-[#5E7381] text-white rounded-xl hover:bg-[#4a5c6a] transition-all font-bold shadow-lg shadow-[#5E7381]/10"
+                    className="block w-full text-center py-2.5 bg-white text-slate-500 rounded-xl hover:bg-gray-300 active:bg-gray-400 transition-all font-bold shadow-lg shadow-black/20"
                   >
                     Start Lesson
                   </Link>

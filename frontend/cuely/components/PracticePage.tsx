@@ -58,39 +58,6 @@ export default function PracticePage({
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#E1D3BE]">
-      {/* Progress Bar */}
-      <div className="w-full py-6 px-8 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-5 left-10 right-10 h-1 bg-white -z-10" />
-            <div
-              className="absolute top-5 left-0 h-1 bg-[#5E7381] -z-10 transition-all duration-500"
-              style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
-            />
-
-            {steps.map((step) => (
-              <div key={step.number} className="flex flex-col items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${step.number <= currentStep
-                    ? 'bg-[#5E7381] text-white'
-                    : 'bg-white text-gray-600'
-                    }`}
-                >
-                  {step.number}
-                </div>
-                <span
-                  className={`mt-2 text-sm font-medium ${step.number <= currentStep
-                    ? 'text-[#5E7381]'
-                    : 'text-gray-500'
-                    }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-8 pb-8 overflow-hidden">
@@ -135,17 +102,11 @@ export default function PracticePage({
 
             {/* Right Column - Interaction */}
             <div className="flex flex-col bg-white p-8 rounded-2xl shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gray-100">
-                <div
-                  className="h-full transition-all duration-500"
-                  style={{ width: practicePhase === 'listen' ? '50%' : '100%' }}
-                />
-              </div>
 
               {/* Listen Phase */}
               {practicePhase === 'listen' && (
                 <div className="flex-1 flex flex-col justify-center items-center text-center animate-in fade-in slide-in-from-right-4 duration-300">
-                  <div className="w-16 h-16  rounded-full flex items-center justify-center mb-6 text-[#5E7381]">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 text-[#5E7381]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                   </div>
 
@@ -267,14 +228,15 @@ export default function PracticePage({
             </div>
           </div>
 
-          {/* Global Navigation (Back Only) */}
-          <div className="absolute bottom-8 left-8">
+          {/* Global Navigation */}
+          <div className="flex justify-between items-center mt-6">
             <button
               onClick={onBack}
-              className="px-6 py-2 bg-white/80 backdrop-blur text-gray-600 rounded-lg font-medium hover:bg-white transition-colors border border-gray-200"
+              className="px-6 py-3 bg-white text-[#5E7381] rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Exit Lesson
+              ← Back
             </button>
+
           </div>
         </div>
       </div>

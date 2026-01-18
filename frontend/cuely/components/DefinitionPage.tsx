@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface DefinitionPageProps {
   term: string;
@@ -8,7 +9,6 @@ interface DefinitionPageProps {
   visualCues: string[];
   toneCues: string[];
   onNext: () => void;
-  onBack: () => void;
   currentStep: number;
   totalSteps: number;
 }
@@ -19,53 +19,16 @@ export default function DefinitionPage({
   visualCues,
   toneCues,
   onNext,
-  onBack,
   currentStep,
   totalSteps,
-}: DefinitionPageProps) {
-  const steps = [
-    { number: 1, label: 'Definition' },
-    { number: 2, label: 'Practice' },
-    { number: 3, label: 'Results' },
-  ];
+}: DefinitionPageProps) { 
+  const router = useRouter();
+  const handleBack = () => {
+    router.push('/lessons'); 
+}; 
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Progress Bar */}
-      <div className="w-full py-6 px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-5 left-10 right-10 h-1 bg-white -z-10" />
-            <div 
-              className="absolute top-5 left-0 h-1 bg-[#5E7381] -z-10 transition-all duration-500"
-              style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
-            />
-
-            {steps.map((step) => (
-              <div key={step.number} className="flex flex-col items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
-                    step.number <= currentStep
-                      ? 'bg-[#5E7381] text-white'
-                      : 'bg-white text-gray-600'
-                  }`}
-                >
-                  {step.number}
-                </div>
-                <span
-                  className={`mt-2 text-sm font-medium ${
-                    step.number <= currentStep
-                      ? 'text-[#5E7381]'
-                      : 'text-gray-500'
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-8 pb-8 overflow-hidden">
@@ -121,10 +84,10 @@ export default function DefinitionPage({
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center">
             <button
-              onClick={onBack}
+              onClick={handleBack}
               className="px-6 py-3 bg-white text-[#5E7381] rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              ← Back
+              ← Leave Lesson
             </button>
             <button
               onClick={onNext}
