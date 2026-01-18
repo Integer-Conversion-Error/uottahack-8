@@ -72,11 +72,11 @@ export class GeminiService {
       console.log(`Read video file: ${filePath}, size: ${videoBuffer.length} bytes`);
 
       let prompt = `
-          Analyze this video for social cues. 
+          You are an EXTREMELY CRITICAL social skills coach analyzing a user's video response. Be VERY nit-picky and detail-oriented. Your feedback should help them improve their social communication skills.
           
           Context:
-          - Target Tone: "${tone}"
-          - Situation/Prompt user is responding to: "${promptContext}"`;
+          - Target Tone/Emotion: "${tone}"
+          - Situation they are responding to: "${promptContext}"`;
 
       if (presageData) {
         prompt += `\n          - Supplementary Biometric Data (Presage): ${JSON.stringify(presageData)}`;
@@ -84,22 +84,69 @@ export class GeminiService {
 
       prompt += `
           
-          Grade the user on these 4 items based on how well they respond to the situation:
-          1. Facial Expression
-          2. Eye Contact
-          3. Body Language
-          4. Tone (Vocal/Speech)
+          IMPORTANT: Be a HARSH but CONSTRUCTIVE critic. Point out every small issue you notice. Users are here to LEARN and IMPROVE.
 
-          For each item, provide:
-          - A score from these options: "thumbs-up", "thumbs-sideways", "thumbs-down"
-          - A 30-40 word feedback section explaining the score and offering advice.
+          Grade the user on these 4 items. For each, scrutinize carefully:
+
+          1. FACIAL EXPRESSION - Be extremely critical:
+             - Does their face ACTUALLY match the "${tone}" emotion?
+             - Are their eyebrows positioned appropriately? (raised for surprise, furrowed for concern, etc.)
+             - Is there genuine emotion in their eyes or do they look dead/fake?
+             - Is their smile genuine (crow's feet) or forced/fake?
+             - Do micro-expressions betray their true feelings?
+             - Is their face too stiff, too exaggerated, or asymmetrical?
+             - Does their expression change naturally or is it frozen?
+
+          2. EYE CONTACT - Be extremely critical:
+             - Are they looking at the camera or constantly looking away?
+             - Do they blink too much (nervous) or too little (staring)?
+             - Is their gaze steady and confident or darting around?
+             - Do they look down when speaking (submissive) or maintain presence?
+             - Is there appropriate eye engagement for the emotional context?
+             - Do they break eye contact at awkward moments?
+
+          3. BODY LANGUAGE - Be extremely critical:
+             - Is their posture open and confident or closed/defensive?
+             - Are their shoulders relaxed or tense/hunched?
+             - Do they use appropriate hand gestures or are they frozen/fidgeting?
+             - Is there unnecessary movement or distracting mannerisms?
+             - Do they lean in appropriately for the emotional context?
+             - Are there nervous ticks like touching face, playing with hair, etc.?
+             - Is their head position appropriate (tilted for empathy, straight for confidence)?
+
+          4. VOCAL TONE - Be extremely critical:
+             - Does their voice match the "${tone}" emotion?
+             - Is the pace too fast (nervous), too slow (boring), or just right?
+             - Is there enough vocal variety or is it monotone?
+             - Is the volume appropriate - too quiet (timid) or too loud (aggressive)?
+             - Are there filler words (um, uh, like) that detract from delivery?
+             - Does their voice sound genuine/authentic or performative/fake?
+             - Is there appropriate emotional emphasis on key words?
+             - Do they sound engaged or bored/disconnected?
+
+          5. CONTENT ACCURACY - Be extremely critical:
+             - Did the user actually respond to the situation: "${promptContext}"?
+             - Is their verbal response appropriate for the context?
+             - Did they say something relevant or completely off-topic?
+             - Did they convey the right message for the situation?
+             - Would their response make sense in a real conversation?
+             - Did they miss key elements that should have been addressed?
+
+          SCORING CRITERIA:
+          - "thumbs-up": Nearly perfect. Minor issues at most. Would impress in real life.
+          - "thumbs-sideways": Acceptable but needs work. Noticeable issues that could be improved.
+          - "thumbs-down": Significant problems. Needs substantial improvement before real-world use.
+
+          For EACH category, provide 40-50 words of SPECIFIC, ACTIONABLE feedback. Point out EXACTLY what was wrong and HOW to fix it. Don't be vague.
 
           Return the result ONLY as a valid JSON object with the following schema:
           {
+            "transcript": "string (the user's exact spoken words)",
             "facial_expression": { "score": "string", "feedback": "string" },
             "eye_contact": { "score": "string", "feedback": "string" },
             "body_language": { "score": "string", "feedback": "string" },
-            "tone": { "score": "string", "feedback": "string" }
+            "tone": { "score": "string", "feedback": "string" },
+            "content_accuracy": { "score": "string", "feedback": "string" }
           }
         `;
 
@@ -130,6 +177,10 @@ export class GeminiService {
               responseSchema: {
                 type: "object",
                 properties: {
+                  transcript: {
+                    type: "string",
+                    description: "The user's exact spoken words transcribed from the video"
+                  },
                   facial_expression: {
                     type: "object",
                     properties: {
@@ -161,9 +212,17 @@ export class GeminiService {
                       feedback: { type: "string" }
                     },
                     required: ["score", "feedback"]
+                  },
+                  content_accuracy: {
+                    type: "object",
+                    properties: {
+                      score: { type: "string", enum: ["thumbs-up", "thumbs-sideways", "thumbs-down"] },
+                      feedback: { type: "string" }
+                    },
+                    required: ["score", "feedback"]
                   }
                 },
-                required: ["facial_expression", "eye_contact", "body_language", "tone"]
+                required: ["transcript", "facial_expression", "eye_contact", "body_language", "tone", "content_accuracy"]
               }
             }
           });

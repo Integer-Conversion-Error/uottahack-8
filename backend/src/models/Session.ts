@@ -12,10 +12,13 @@ export interface IPracticeResult {
     durationSeconds: number;
     analysis: {
         rawScore: number;
+        elevenlabs_transcript?: string;
+        gemini_transcript?: string;
         facial_expression: { score: string; feedback: string };
         eye_contact: { score: string; feedback: string };
         body_language: { score: string; feedback: string };
         tone: { score: string; feedback: string };
+        content_accuracy?: { score: string; feedback: string };
     };
 }
 
@@ -70,10 +73,13 @@ const PracticeResultSchema = new Schema({
     durationSeconds: { type: Number, default: 0 },
     analysis: {
         rawScore: Number,
+        elevenlabs_transcript: String,
+        gemini_transcript: String,
         facial_expression: { score: String, feedback: String },
         eye_contact: { score: String, feedback: String },
         body_language: { score: String, feedback: String },
-        tone: { score: String, feedback: String }
+        tone: { score: String, feedback: String },
+        content_accuracy: { score: String, feedback: String }
     }
 }, { _id: false });
 
