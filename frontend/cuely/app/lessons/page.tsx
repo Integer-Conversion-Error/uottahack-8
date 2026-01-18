@@ -9,10 +9,10 @@ const AVAILABLE_LESSONS = [
     id: 'empathy_beg_001',
     title: 'Empathy: Introduction',
     description: 'Learn the basics of understanding and sharing emotions, focusing on reciprocal empathy and facial mirroring.',
-    difficulty: 'beginner'
+    difficulty: 'intermediate'
   },
   {
-    id: 'lesson-sarcasm-001',
+    id: 'lesson_sarcasm_001',
     title: 'Sarcasm',
     description: 'Master the art of recognizing and responding to sarcasm, understanding the mismatch between words and tone.',
     difficulty: 'intermediate'
@@ -38,9 +38,9 @@ export default function LessonsPage() {
             >
               <div className="mb-4">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-3 uppercase
-                    ${lesson.difficulty === 'beginner' ? 'bg-green-500/20 text-green-300' : 
-                      lesson.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-300' : 
-                      'bg-red-500/20 text-red-300'}`}>
+                    ${lesson.difficulty === 'beginner' ? 'bg-green-50 text-green-700' : 
+                      lesson.difficulty === 'intermediate' ? 'bg-yellow-50 text-yellow-700' : 
+                      'bg-red-50 text-red-700'}`}>
                     {lesson.difficulty}
                   </span>
                   <h3 className="text-xl font-bold text-white mb-2">{lesson.title}</h3>

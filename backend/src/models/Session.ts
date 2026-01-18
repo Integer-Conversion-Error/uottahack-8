@@ -21,8 +21,8 @@ export interface IPracticeResult {
 
 export interface ISession extends Document {
     userId: mongoose.Types.ObjectId;
-    scenarioId?: mongoose.Types.ObjectId;
     lessonId?: string;
+    scenarioId?: string; // Support for standalone scenarios
     startedAt: Date;
     completedAt?: Date;
     durationSeconds: number;
@@ -79,8 +79,8 @@ const PracticeResultSchema = new Schema({
 
 const SessionSchema = new Schema<ISession>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
-    scenarioId: { type: Schema.Types.ObjectId, ref: 'Scenario', required: false },
     lessonId: { type: String, required: false },
+    scenarioId: { type: String, required: false },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
     durationSeconds: { type: Number, default: 0 },

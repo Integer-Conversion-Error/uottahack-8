@@ -1,6 +1,7 @@
 // app/lessons/[lessonId]/page.tsx
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect, useRef, use } from 'react';
 import { gsap } from 'gsap';
 import DefinitionPage from '@/components/DefinitionPage';
@@ -9,15 +10,13 @@ import Image from 'next/image';
 
 import PracticePage from '@/components/PracticePage';
 
-import EmpathyLesson from '@/data/Empathy_Introduction.json';
-import SarcasmLesson from '@/data/Sarcasm.json';
-
 interface LessonPageProps {
   params: Promise<{
     lessonId: string;
   }>;
 }
 
+<<<<<<< HEAD
 const LESSON_MAP: Record<string, any> = {
   [EmpathyLesson.lessonId]: EmpathyLesson,
   [SarcasmLesson.lessonId]: SarcasmLesson,
@@ -45,11 +44,14 @@ function ProgressBar({ currentStep, totalSteps }: { currentStep: number; totalSt
   );
 }
 
+=======
+>>>>>>> f50b910ab73390baf5737bb6f05001828d21ad97
 export default function LessonPage({ params }: LessonPageProps) {
   // Unwrap params using React.use()
   const { lessonId } = use(params);
 
-  // Use index to track progress: -1 (loading), 0...N (pages), N+1 (results)
+  const [lessonData, setLessonData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [pageIndex, setPageIndex] = useState<number>(-1);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -60,7 +62,23 @@ export default function LessonPage({ params }: LessonPageProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
 
-  const lessonData = getLesson(lessonId);
+  // Fetch lesson data
+  useEffect(() => {
+    const fetchLesson = async () => {
+      try {
+        const res = await fetch(`http://localhost:4000/api/lessons/${lessonId}`);
+        const data = await res.json();
+        if (data.success) {
+          setLessonData(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch lesson:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLesson();
+  }, [lessonId]);
 
   // Count total practice pages
   const totalPractices = lessonData?.pages.filter((p: any) => p.pageType === 'practice').length || 0;

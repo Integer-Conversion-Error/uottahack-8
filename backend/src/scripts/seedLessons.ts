@@ -16,19 +16,30 @@ async function seedLessons() {
         await mongoose.connect(process.env.MONGODB_URI!);
         console.log('✅ Connected to MongoDB\n');
 
-        // Read generated lessons from Python script
-        const lessonsPath = path.join(__dirname, '../../scripts/generated_structure.json');
+        // Path to frontend data directory
+        const frontendDataPath = path.join(__dirname, '../../../frontend/cuely/data');
+        const lessonFiles = ['Empathy_Introduction.json', 'Sarcasm.json'];
 
-        if (!fs.existsSync(lessonsPath)) {
-            console.error('❌ generated_structure.json not found!');
-            console.log('💡 Run: python scripts/generate_json.py --modules 3');
-            process.exit(1);
+        const lessons: any[] = [];
+
+        for (const fileName of lessonFiles) {
+            const filePath = path.join(frontendDataPath, fileName);
+            if (fs.existsSync(filePath)) {
+                const lessonData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+                // Ensure difficulty is present (extracted from filename or added manually)
+                if (!lessonData.difficulty) {
+                    lessonData.difficulty = fileName.toLowerCase().includes('beg') ? 'beginner' : 'intermediate';
+                }
+                lessons.push(lessonData);
+            } else {
+                console.warn(`⚠️  Warning: ${fileName} not found at ${filePath}`);
+            }
         }
 
-        const lessonsData = JSON.parse(fs.readFileSync(lessonsPath, 'utf-8'));
-
-        // Handle both single lesson and array of lessons
-        const lessons = Array.isArray(lessonsData) ? lessonsData : [lessonsData];
+        if (lessons.length === 0) {
+            console.error('❌ No lesson files found to seed!');
+            process.exit(1);
+        }
 
         // Clear existing lessons
         await Lesson.deleteMany({});
@@ -40,7 +51,7 @@ async function seedLessons() {
 
         console.log('📊 Lessons added:');
         result.forEach(lesson => {
-            console.log(`   - ${lesson.lessonName} (Lesson ${lesson.lessonNumber})`);
+            console.log(`   - ${lesson.lessonName} (Lesson ${lesson.lessonNumber}) [${lesson.lessonId}]`);
         });
 
         console.log('\n🎉 Lesson seeding complete!\n');
