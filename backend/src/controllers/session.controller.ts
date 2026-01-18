@@ -6,6 +6,7 @@ import User from '../models/User';
 import { GeminiService } from '../services/gemini.service';
 import { ElevenLabsService } from '../services/elevenlabs.service';
 import { AchievementService } from '../services/achievement.service';
+import { UserService } from '../services/user.service';
 import fs from 'fs';
 import { CreateSessionDTO } from '../dtos/session.dto';
 
@@ -142,21 +143,19 @@ export const addPractice = async (req: Request, res: Response) => {
         // Update User Stats & Check Achievements
         let newlyUnlocked: string[] = [];
         try {
-            const user = await User.findById(session.userId);
+            const user = await UserService.updateUserStats(session.userId.toString(), {
+                facial_expression: analysisResult.facial_expression?.score || 'thumbs-down',
+                eye_contact: analysisResult.eye_contact?.score || 'thumbs-down',
+                body_language: analysisResult.body_language?.score || 'thumbs-down',
+                tone: analysisResult.tone?.score || 'thumbs-down'
+            });
+
             if (user) {
-                user.stats.scenariosCompleted = (user.stats.scenariosCompleted || 0) + 1;
-
-                const weight = 0.2;
-                user.skills.facialExpression = (user.skills.facialExpression || 0) * (1 - weight) + (analysisResult.facial_expression || 0) * weight;
-                user.skills.toneControl = (user.skills.toneControl || 0) * (1 - weight) + (analysisResult.tone || 0) * weight;
-                user.skills.eyeContact = (user.skills.eyeContact || 0) * (1 - weight) + (analysisResult.eye_contact || 0) * weight;
-                user.skills.bodyLanguage = (user.skills.bodyLanguage || 0) * (1 - weight) + (analysisResult.body_language || 0) * weight;
-
-                user.stats.overallEmpathyScore = (user.skills.facialExpression + user.skills.toneControl + user.skills.eyeContact + user.skills.bodyLanguage) / 4;
-
-                await user.save();
-
                 newlyUnlocked = await AchievementService.checkAndAwardAchievements(user._id.toString());
+                console.log('User stats updated. Scenarios completed:', user.stats.scenariosCompleted);
+                console.log('Overall empathy score:', user.stats.overallEmpathyScore);
+                console.log('Current streak:', user.stats.currentStreakDays);
+                console.log('Newly unlocked achievements:', newlyUnlocked);
             }
         } catch (statsError) {
             console.error('Error updating user stats or checking achievements:', statsError);
@@ -253,21 +252,19 @@ export const completeSession = async (req: Request, res: Response) => {
 
         let newlyUnlocked: string[] = [];
         try {
-            const user = await User.findById(session.userId);
+            const user = await UserService.updateUserStats(session.userId.toString(), {
+                facial_expression: analysisResult.facial_expression?.score || 'thumbs-down',
+                eye_contact: analysisResult.eye_contact?.score || 'thumbs-down',
+                body_language: analysisResult.body_language?.score || 'thumbs-down',
+                tone: analysisResult.tone?.score || 'thumbs-down'
+            });
+
             if (user) {
-                user.stats.scenariosCompleted = (user.stats.scenariosCompleted || 0) + 1;
-
-                const weight = 0.2;
-                user.skills.facialExpression = (user.skills.facialExpression || 0) * (1 - weight) + (analysisResult.facial_expression || 0) * weight;
-                user.skills.toneControl = (user.skills.toneControl || 0) * (1 - weight) + (analysisResult.tone || 0) * weight;
-                user.skills.eyeContact = (user.skills.eyeContact || 0) * (1 - weight) + (analysisResult.eye_contact || 0) * weight;
-                user.skills.bodyLanguage = (user.skills.bodyLanguage || 0) * (1 - weight) + (analysisResult.body_language || 0) * weight;
-
-                user.stats.overallEmpathyScore = (user.skills.facialExpression + user.skills.toneControl + user.skills.eyeContact + user.skills.bodyLanguage) / 4;
-
-                await user.save();
-
                 newlyUnlocked = await AchievementService.checkAndAwardAchievements(user._id.toString());
+                console.log('User stats updated. Scenarios completed:', user.stats.scenariosCompleted);
+                console.log('Overall empathy score:', user.stats.overallEmpathyScore);
+                console.log('Current streak:', user.stats.currentStreakDays);
+                console.log('Newly unlocked achievements:', newlyUnlocked);
             }
         } catch (statsError) {
             console.error('Error updating user stats or checking achievements:', statsError);

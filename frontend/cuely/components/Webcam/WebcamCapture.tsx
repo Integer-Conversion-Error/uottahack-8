@@ -121,7 +121,7 @@ export default function WebcamCapture({
         {isRecording && (
           <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full z-10">
             <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-            <span className="text-sm font-medium">Recording</span>
+            <span className="text-sm font-medium"></span>
           </div>
         )}
 
