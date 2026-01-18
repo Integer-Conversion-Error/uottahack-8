@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import Session from '../models/Session';
 import User from '../models/User';
 import { GeminiService } from '../services/gemini.service';
+import { ElevenLabsService } from '../services/elevenlabs.service';
 import fs from 'fs';
 import { CreateSessionDTO } from '../dtos/session.dto';
 
@@ -100,23 +101,30 @@ export const addPractice = async (req: Request, res: Response) => {
         const tone = targetTone || "General Social Cue";
         const context = promptContext || scenarioContext || "User is practicing a social interaction.";
 
-        // Run AI analysis
+        // Transcribe video using ElevenLabs STT (required)
+        const elevenLabsTranscript = await ElevenLabsService.transcribeAudio(filePath);
+        console.log('ElevenLabs transcript:', elevenLabsTranscript);
+
+        // Run AI analysis (Gemini analyzes video for facial/body/tone feedback)
         const analysisResult = await GeminiService.analyzeVideo(filePath, tone, context);
 
         // Create practice result
         const practiceResult = {
             practiceIndex: parseInt(practiceIndex) || session.practices.length,
             scenarioContext: scenarioContext || context,
-            transcript: transcript || '',
+            transcript: elevenLabsTranscript,
             videoUrl: filePath,
             completedAt: new Date(),
             durationSeconds: 0,
             analysis: {
                 rawScore: 0,
+                elevenlabs_transcript: elevenLabsTranscript,
+                gemini_transcript: analysisResult.transcript || '',
                 facial_expression: analysisResult.facial_expression,
                 eye_contact: analysisResult.eye_contact,
                 body_language: analysisResult.body_language,
-                tone: analysisResult.tone
+                tone: analysisResult.tone,
+                content_accuracy: analysisResult.content_accuracy
             }
         };
 
@@ -190,23 +198,30 @@ export const completeSession = async (req: Request, res: Response) => {
         let targetTone = req.body.targetTone || "General Social Cue";
         let promptContext = req.body.promptContext || scenarioContext || "User is practicing a social interaction.";
 
-        // Run AI analysis
+        // Transcribe video using ElevenLabs STT (required)
+        const elevenLabsTranscript = await ElevenLabsService.transcribeAudio(filePath);
+        console.log('ElevenLabs transcript:', elevenLabsTranscript);
+
+        // Run AI analysis (Gemini analyzes video for facial/body/tone feedback)
         const analysisResult = await GeminiService.analyzeVideo(filePath, targetTone, promptContext, presageData);
 
         // Create practice result and add to array
         const practiceResult = {
             practiceIndex: parseInt(practiceIndex) || session.practices.length,
             scenarioContext: scenarioContext || promptContext,
-            transcript: transcript || '',
+            transcript: elevenLabsTranscript,
             videoUrl: filePath,
             completedAt: new Date(),
             durationSeconds: 0,
             analysis: {
                 rawScore: 0,
+                elevenlabs_transcript: elevenLabsTranscript,
+                gemini_transcript: analysisResult.transcript || '',
                 facial_expression: analysisResult.facial_expression,
                 eye_contact: analysisResult.eye_contact,
                 body_language: analysisResult.body_language,
-                tone: analysisResult.tone
+                tone: analysisResult.tone,
+                content_accuracy: analysisResult.content_accuracy
             }
         };
 
