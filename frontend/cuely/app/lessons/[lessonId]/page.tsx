@@ -30,7 +30,7 @@ function ProgressBar({
   const progressPercentage = (currentStep / totalSteps) * 100;
 
   return (
-    <div className="w-full py-6 px-8">
+    <div className="w-full px-8">
       <div className="max-w-6xl mx-auto">
         <div className="w-full bg-white rounded-full h-2">
           <div
