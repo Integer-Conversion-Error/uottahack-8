@@ -4,7 +4,13 @@ import fs from 'fs';
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Use Cloudflare Worker proxy to bypass Google's IP blocking on cloud providers
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  httpOptions: {
+    baseUrl: 'https://gemini-proxy.esad-n-kaya.workers.dev'
+  }
+});
 
 export class GeminiService {
 
