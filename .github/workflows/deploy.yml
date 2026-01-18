@@ -1,0 +1,33 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/uottahack-8
+            git pull origin main
+            
+            # Build backend
+            cd backend
+            npm install
+            npm run build
+            
+            # Build frontend
+            cd ../frontend/cuely
+            npm install
+            npm run build
+            
+            # Restart services
+            pm2 restart all || pm2 start ecosystem.config.js
