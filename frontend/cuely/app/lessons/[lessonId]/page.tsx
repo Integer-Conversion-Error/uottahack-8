@@ -27,6 +27,24 @@ const LESSON_MAP: Record<string, any> = {
 
 const getLesson = (id: string) => LESSON_MAP[id] || null;
 
+// Progress Bar Component
+function ProgressBar({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  const progressPercentage = (currentStep / totalSteps) * 100;
+
+  return (
+    <div className="w-full py-6 px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="w-full bg-white rounded-full h-2">
+          <div
+            className="bg-[#5E7381] h-2 rounded-full transition-all duration-500"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LessonPage({ params }: LessonPageProps) {
   // Unwrap params using React.use()
   const { lessonId } = use(params);
@@ -161,13 +179,12 @@ export default function LessonPage({ params }: LessonPageProps) {
       handleNext();
   };
 
-  // Loading Screen
+  // Loading Screen - NO PROGRESS BAR
   if (pageIndex === -1) {
-      // ... existing loading screen ...
        return (
        <div className="min-h-screen flex items-center justify-center bg-[#E1D3BE]">
         <div className="text-center">
-          <h1 ref={titleRef} className="text-6xl font-bold text-[#5E7381] mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]">
+          <h1 ref={titleRef} className="text-6xl font-bold text-black mb-4 opacity-0 font-[family-name:var(--font-josefin_sans)]">
             Lesson {lessonData.lessonNumber}
           </h1>
           <p ref={descriptionRef} className="text-3xl text-black opacity-0">
@@ -181,17 +198,20 @@ export default function LessonPage({ params }: LessonPageProps) {
   // Intercept for Feedback/Results View
   if (showFeedback && analysisResult) {
       return (
-          <ResultsPage
-            analysis={analysisResult}
-            onNext={handleFeedbackNext}
-            onTryAgain={() => setShowFeedback(false)}
-            currentStep={pageIndex + 1}
-            totalSteps={lessonData.pages.length + 1}
-          />
+          <div className="h-screen flex flex-col overflow-hidden">
+            <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
+            <ResultsPage
+              analysis={analysisResult}
+              onNext={handleFeedbackNext}
+              onTryAgain={() => setShowFeedback(false)}
+              currentStep={pageIndex + 1}
+              totalSteps={lessonData.pages.length + 1}
+            />
+          </div>
       );
   }
 
-  // Final Completion Screen (End of lesson) - Only reached after last feedback
+  // Final Completion Screen
   if (pageIndex === lessonData.pages.length) {
     return (
         <div className="min-h-screen bg-[#E1D3BE] flex items-center justify-center flex-col gap-6 text-center p-8">
@@ -215,31 +235,37 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   if (currentPageData.pageType === 'definition') {
     return (
-      <DefinitionPage
-        term={currentPageData.term}
-        definition={currentPageData.definition}
-        visualCues={currentPageData.visualCues}
-        toneCues={currentPageData.toneCues}
-        onNext={handleNext}
-        onBack={handleBack}
-        currentStep={pageIndex + 1}
-        totalSteps={lessonData.pages.length + 1}
-      />
+      <div className="h-screen flex flex-col overflow-hidden pt-30">
+        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
+        <DefinitionPage
+          term={currentPageData.term}
+          definition={currentPageData.definition}
+          visualCues={currentPageData.visualCues}
+          toneCues={currentPageData.toneCues}
+          onNext={handleNext}
+          onBack={handleBack}
+          currentStep={pageIndex + 1}
+          totalSteps={lessonData.pages.length + 1}
+        />
+      </div>
     );
   }
 
   if (currentPageData.pageType === 'practice') {
     return (
-      <PracticePage
-        scenario={currentPageData.scenario}
-        audioSample={currentPageData.audioSample}
-        transcript={currentPageData.transcript}
-        onNext={handlePracticeSubmit} // Pass submit handler instead of generic next
-        onBack={handleBack}
-        currentStep={pageIndex + 1}
-        totalSteps={lessonData.pages.length + 1}
-        isSubmitting={isSubmitting} // Pass submitting state
-      />
+      <div className="h-screen flex flex-col overflow-hidden">
+        <ProgressBar currentStep={pageIndex + 1} totalSteps={lessonData.pages.length + 1} />
+        <PracticePage
+          scenario={currentPageData.scenario}
+          audioSample={currentPageData.audioSample}
+          transcript={currentPageData.transcript}
+          onNext={handlePracticeSubmit}
+          onBack={handleBack}
+          currentStep={pageIndex + 1}
+          totalSteps={lessonData.pages.length + 1}
+          isSubmitting={isSubmitting}
+        />
+      </div>
     );
   }
 

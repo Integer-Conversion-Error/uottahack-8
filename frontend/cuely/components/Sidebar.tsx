@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             }`}
         >
             {/* Header / Logo */}
-            <div className={`flex items-center gap-3 px-6 py-8 h-20 ${!isOpen && 'justify-center px-0'}`}>
+            <div className={`flex items-center gap-3 px-6 py-8 h-20 ${isOpen ? 'justify-center' : 'justify-center px-0'}`}>
                 <div className="min-w-[40px] flex items-center justify-center">
                     <Image
                         src="/Cuely-logo-bg-removed.png"
@@ -48,11 +48,6 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                         className="transition-all"
                     />
                 </div>
-                {isOpen && (
-                    <span className="text-xl font-bold text-[#5E7381] tracking-tight whitespace-nowrap overflow-hidden font-[family-name:var(--font-josefin_sans)]">
-                        Cuely
-                    </span>
-                )}
             </div>
 
             {/* Navigation */}
